@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users(
     instagram VARCHAR,
     facebook VARCHAR,
     website VARCHAR,
-    phone VARCHER,
+    phone VARCHAR,
     whatsapp VARCHAR,
     code VARCHAR(20),
     city VARCHAR(100),
@@ -55,6 +55,6 @@ CREATE TABLE IF NOT EXISTS prices(
     id BIGSERIAL PRIMARY KEY,
     value DECIMAL(8, 2) NOT NULL,
     unit VARCHAR(30),
-    product_id INTEGER NOT NULL REFERENCES products(id),
+    product_id INTEGER NOT NULL REFERENCES products(id)
 );
 
