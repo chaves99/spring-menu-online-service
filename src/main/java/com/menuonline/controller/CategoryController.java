@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.menuonline.config.AuthFilter;
 import com.menuonline.entity.Category;
+import com.menuonline.entity.Product;
 import com.menuonline.entity.UserEntity;
 import com.menuonline.exceptions.HttpServiceException;
 import com.menuonline.repository.CategoryRepository;
+import com.menuonline.repository.ProductRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -32,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CategoryController {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
     @PostMapping
     public ResponseEntity<List<CategoryResponse>> create(HttpServletRequest request,
@@ -72,6 +75,9 @@ public class CategoryController {
         Category category = categoryRepository
                 .findByUserIdAndId(user.getId(), id)
                 .orElseThrow(() -> new HttpServiceException(null, HttpStatus.NOT_FOUND));
+        List<Product> products = productRepository.findByCategoryId(category.getId());
+        log.info("delete - category:{} product list:{}", category, products.size());
+        productRepository.deleteAll(products);
         categoryRepository.delete(category);
         return ResponseEntity.ok(findAll(user.getId()));
     }

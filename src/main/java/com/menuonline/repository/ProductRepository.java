@@ -71,6 +71,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
         public String getCategoryName();
     }
 
+    List<Product> findByCategoryId(Long id);
+
 
     @Query(nativeQuery = true, value = """
             select
