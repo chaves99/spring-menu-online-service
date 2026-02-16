@@ -20,11 +20,11 @@ public class MenuOnlineApplication {
         SpringApplication.run(MenuOnlineApplication.class, args);
     }
 
-    // @Bean
-    // public CommandLineRunner runner(SimpleStorageBucketSerivce service) {
-    //     return a -> {
-    //         System.out.println("##### -> object: " + service.getObjectOnBucket());
-    //         System.out.println("##### -> buckets: " + service.getAllBuckets());
-    //     };
-    // }
+    @Bean
+    public CommandLineRunner runner(SimpleStorageBucketSerivce service) {
+        return a -> {
+            System.out.println("##### -> object: " + service.getObjectOnBucket());
+            System.out.println("##### -> buckets: " + service.getAllBuckets());
+        };
+    }
 }
