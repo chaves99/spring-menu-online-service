@@ -1,6 +1,7 @@
 package com.menuonline.payloads;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.menuonline.entity.Product;
@@ -12,6 +13,8 @@ public record ProductResponse(
         String description,
         Boolean active,
         List<PriceResponse> prices,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
         long categoryId,
         String categoryName) {
 
@@ -22,6 +25,8 @@ public record ProductResponse(
                 product.getDescription(),
                 product.isActive(),
                 List.of(),
+                product.getCreatedAt(),
+                product.getUpdatedAt(),
                 product.getCategoryId(),
                 product.getCategoryName());
     }
@@ -36,6 +41,8 @@ public record ProductResponse(
                 product.getDescription(),
                 product.isActive(),
                 prices,
+                product.getCreatedAt(),
+                product.getUpdatedAt(),
                 product.getCategory().getId(),
                 product.getCategory().getName());
     }

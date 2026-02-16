@@ -92,16 +92,13 @@ public class ProductService {
     }
 
     @Transactional
-    public void update(Long idProduct, CreateProductRequest request) {
+    public Product update(Product product, CreateProductRequest request) {
         Category category = categoryRepository
                 .findById(request.categoryId())
                 .orElseThrow(() -> new HttpServiceException(null, HttpStatus.CONFLICT));
 
-        Product product = productRepository
-                .findById(idProduct)
-                .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
 
-        priceRepository.deleteByProductId(idProduct);
+        priceRepository.deleteByProductId(product.getId());
         savePrices(request, product);
 
         product.setName(request.name());
@@ -109,7 +106,7 @@ public class ProductService {
         product.setDescription(request.description());
         product.setCategory(category);
 
-        productRepository.saveAndFlush(product);
+        return productRepository.saveAndFlush(product);
     }
 
     public void toggleActive(Long id, UserEntity user) {
@@ -126,5 +123,9 @@ public class ProductService {
                 .findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
         productRepository.delete(product);
+    }
+
+    public Optional<Product> findByUserAndId(Long userId, Long productId) {
+        return productRepository.findByIdAndUserId(productId, userId);
     }
 }

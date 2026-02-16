@@ -27,7 +27,6 @@ import lombok.ToString;
 @Getter
 @Setter
 @EqualsAndHashCode
-@ToString
 @EntityListeners(AuditingEntityListener.class)
 public class UserEntity {
 
@@ -71,5 +70,10 @@ public class UserEntity {
     @Column(name = "updated_at")
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @Override
+    public String toString() {
+        return "UserEntity[" + id + " - " + email + "]";
+    }
     
 }

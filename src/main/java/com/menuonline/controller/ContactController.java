@@ -32,13 +32,23 @@ public class ContactController {
     @PostMapping
     public ResponseEntity<ContactRecord> post(@RequestAttribute(AuthFilter.USER_ATTR_KEY) UserEntity user,
             @RequestBody ContactRecord body) {
-        user.setWhatsapp(body.whatsapp());
-        user.setWebsite(body.website());
-        user.setFacebook(body.facebook());
-        user.setInstagram(body.instagram());
-        user.setPhone(body.phone());
+        user.setWhatsapp(getValue(body.whatsapp()));
+        user.setWebsite(getValue(body.website()));
+        user.setFacebook(getValue(body.facebook()));
+        user.setInstagram(getValue(body.instagram()));
+        user.setPhone(getValue(body.phone()));
         userRepository.save(user);
         return ResponseEntity.ok().build();
+    }
+
+    private String getValue(String value) {
+        if (value == null)
+            return null;
+
+        if (value.isEmpty() || value.isBlank())
+            return null;
+
+        return value;
     }
 
     public static record ContactRecord(String instagram, String facebook,

@@ -13,6 +13,8 @@ import com.menuonline.entity.UserEntity;
 import com.menuonline.payloads.CreateUserRequest;
 import com.menuonline.payloads.LoginUserRequest;
 import com.menuonline.payloads.LoginUserResponse;
+import com.menuonline.payloads.UpdatePasswordRequest;
+import com.menuonline.service.MockMenuService;
 import com.menuonline.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,11 +27,13 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserService userService;
+    private final MockMenuService mockMenuService;
 
     @PostMapping
     @Transactional
     public ResponseEntity<LoginUserResponse> create(@RequestBody CreateUserRequest request) {
         UserEntity userEntity = userService.create(request);
+        mockMenuService.create(userEntity);
         TokenAccess login = userService.login(userEntity);
         return ResponseEntity.ok(LoginUserResponse.from(login));
     }
@@ -38,6 +42,20 @@ public class UserController {
     public ResponseEntity<LoginUserResponse> login(@RequestBody LoginUserRequest request) {
         TokenAccess login = userService.login(request);
         return ResponseEntity.ok(LoginUserResponse.from(login));
+    }
+
+    @PostMapping("/update-password")
+    public ResponseEntity<?> updatePassword(HttpServletRequest request, @RequestBody UpdatePasswordRequest body) {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        userService.updatePassword(user, body);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(HttpServletRequest request, @RequestBody UpdatePasswordRequest body) {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        userService.resetPassword(user, body);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping

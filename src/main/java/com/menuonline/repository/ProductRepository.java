@@ -43,6 +43,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
                 p.name as productName,
                 p.description,
                 p.active,
+                p.created_at,
+                p.updated_at,
                 p.category_id,
                 c.name as categoryName
             from products p
@@ -62,9 +64,9 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
         public boolean isActive();
 
-        // public LocalDateTime getCreatedAt();
+        public LocalDateTime getCreatedAt();
 
-        // public LocalDateTime getUpdatedAt();
+        public LocalDateTime getUpdatedAt();
 
         public long getCategoryId();
 
