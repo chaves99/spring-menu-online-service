@@ -31,6 +31,7 @@ public class SimpleStorageBucketSerivce {
     private final BucketConfig bucketConfig;
 
     public SimpleStorageBucketSerivce(BucketConfig bucketConfig) {
+        log.info("constructor - bucketConfig: {}", bucketConfig);
         this.bucketConfig = bucketConfig;
         AwsBasicCredentials awsBasicCredentials = AwsBasicCredentials
                 .create(bucketConfig.accessKeyId(), bucketConfig.secretAccessKey());
