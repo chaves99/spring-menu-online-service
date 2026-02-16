@@ -42,6 +42,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
                 p.id,
                 p.name as productName,
                 p.description,
+                p.image,
                 p.active,
                 p.created_at,
                 p.updated_at,
@@ -64,6 +65,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
         public boolean isActive();
 
+        public String getImage();
+
         public LocalDateTime getCreatedAt();
 
         public LocalDateTime getUpdatedAt();
@@ -80,6 +83,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             select
                 p.id,
                 p.name as productName,
+                p.image,
                 pr.id as priceId,
                 pr.unit,
                 pr.value,
@@ -101,6 +105,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     public static interface ProductMenuProjection {
         public long getId();
         public String getProductName();
+        public String getImage();
         public Long getPriceId();
         public String getUnit();
         public BigDecimal getValue();

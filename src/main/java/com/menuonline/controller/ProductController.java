@@ -91,7 +91,6 @@ public class ProductController {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         try {
             byte[] imageBytes = bucketSerivce.getImage(user.getId(), productId);
-            System.out.println("#### -> getImage:" + imageBytes);
             if (imageBytes == null) {
                 return ResponseEntity.notFound().build();
             }

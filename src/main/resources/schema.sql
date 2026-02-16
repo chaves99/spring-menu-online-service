@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS products(
     id SERIAL PRIMARY KEY,
     name VARCHAR(120) NOT NULL,
     description VARCHAR(320),
+    image VARCHAR,
     active BOOLEAN DEFAULT TRUE,
     category_id INTEGER NOT NULL REFERENCES categories(id),
     created_at TIMESTAMP NOT NULL,

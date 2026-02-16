@@ -46,6 +46,8 @@ public class Product {
     
     private String description;
 
+    private String image;
+
     private boolean active;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE)

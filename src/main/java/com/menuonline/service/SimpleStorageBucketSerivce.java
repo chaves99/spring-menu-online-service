@@ -7,8 +7,14 @@ import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.menuonline.exceptions.HttpServiceException;
+import com.menuonline.entity.Product;
+import com.menuonline.exceptions.ErrorHandlerResponse.ErrorMessages;
+import com.menuonline.repository.ProductRepository;
 
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -26,13 +32,18 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 @Service
 public class SimpleStorageBucketSerivce {
 
+    private final ProductRepository productRepository;
+
     private final S3Client s3Client;
 
     private final BucketConfig bucketConfig;
 
-    public SimpleStorageBucketSerivce(BucketConfig bucketConfig) {
+    public SimpleStorageBucketSerivce(ProductRepository productRepository,
+            BucketConfig bucketConfig) {
+        this.productRepository = productRepository;
         log.info("constructor - bucketConfig: {}", bucketConfig);
         this.bucketConfig = bucketConfig;
+
         AwsBasicCredentials awsBasicCredentials = AwsBasicCredentials
                 .create(bucketConfig.accessKeyId(), bucketConfig.secretAccessKey());
         this.s3Client = S3Client
@@ -45,14 +56,22 @@ public class SimpleStorageBucketSerivce {
     }
 
     public void upload(Long userId, Long productId, MultipartFile file) throws IOException {
+        String bucketKey = getBucketKey(userId, productId);
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketConfig.bucketName())
-                .key(getBucketKey(userId, productId))
+                .key(bucketKey)
                 .build();
         RequestBody fromInputStream = RequestBody.fromInputStream(file.getInputStream(), file.getSize());
 
         PutObjectResponse putObject = s3Client.putObject(putObjectRequest, fromInputStream);
+
         log.info("upload image: success:{}", putObject.sdkHttpResponse().isSuccessful());
+
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
+        product.setImage(this.getImageUrl(bucketKey));
+        productRepository.save(product);
+
     }
 
     public byte[] getImage(Long userId, Long productId) throws IOException {
@@ -69,6 +88,10 @@ public class SimpleStorageBucketSerivce {
 
     private String getBucketKey(Long userId, Long productId) {
         return "user_" + userId + "/" + "product_" + productId;
+    }
+
+    private String getImageUrl(String key) {
+        return "https://itimenu-product-images.fly.storage.tigris.dev/" + key;
     }
 
     public List<String> getAllBuckets() {

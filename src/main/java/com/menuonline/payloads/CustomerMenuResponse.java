@@ -70,6 +70,7 @@ public record CustomerMenuResponse(
     private static ProductResponse getProduct(ProductMenuProjection proj, List<PriceResponse> prices) {
         ProductResponse product = new ProductResponse(proj.getId(),
                 proj.getProductName(),
+                proj.getImage(),
                 proj.getDescription(),
                 prices);
         return product;
@@ -94,6 +95,7 @@ public record CustomerMenuResponse(
     public static record ProductResponse(
             Long id,
             String name,
+            String image,
             String description,
             List<PriceResponse> prices) {
     }
