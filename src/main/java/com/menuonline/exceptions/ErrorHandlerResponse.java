@@ -29,7 +29,7 @@ public class ErrorHandlerResponse {
     }
 
     public static enum ErrorMessages {
-        UPDATE_PASSWORD_NOT_AUTHORIZED,
+        PASSWORD_INVALID,
         EMAIL_EXISTS,
         ESTABLISHMENT_EXISTS,
         ESTABLISHMENT_NOT_EXISTS,

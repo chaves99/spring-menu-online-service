@@ -57,6 +57,8 @@ public class UserEntity {
     @OneToMany(mappedBy = "user")
     private List<Schedule> schedules;
 
+    private String image;
+
     private String code;
 
     private String city;

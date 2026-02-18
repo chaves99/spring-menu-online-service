@@ -2,10 +2,10 @@ package com.menuonline.controller;
 
 import java.io.IOException;
 
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -76,29 +76,13 @@ public class ProductController {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
 
         try {
-            bucketSerivce.upload(user.getId(), productId, file);
+            bucketSerivce.uploadProduct(user.getId(), productId, file);
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body(e.getMessage());
         }
 
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/{productId}/image")
-    public ResponseEntity<?> getImage(HttpServletRequest request,
-            @PathVariable Long productId) {
-        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
-        try {
-            byte[] imageBytes = bucketSerivce.getImage(user.getId(), productId);
-            if (imageBytes == null) {
-                return ResponseEntity.notFound().build();
-            }
-            return ResponseEntity.ok(imageBytes);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
     }
 
     @PatchMapping("/{id}")
@@ -122,13 +106,15 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
+    @Transactional
     public ResponseEntity<?> delete(
             HttpServletRequest request,
             @PathVariable Long id,
             @RequestParam(defaultValue = "0", required = false) int page,
-            @RequestParam(defaultValue = "20", required = false) int size) {
+            @RequestParam(defaultValue = "20", required = false) int size) throws IOException {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         service.delete(id, user);
+        bucketSerivce.delete(user.getId(), id);
         return ResponseEntity.ok().build();
     }
 

@@ -3,7 +3,6 @@ package com.menuonline.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -46,7 +45,7 @@ public class UserService {
         if (!CryptoUtil.validate(request.currentPassword(), user.getPassword())) {
             log.warn("updatePassword - user:{} current password not valid", user.getId());
             throw new HttpServiceException(
-                    ErrorMessages.UPDATE_PASSWORD_NOT_AUTHORIZED, HttpStatus.UNAUTHORIZED);
+                    ErrorMessages.PASSWORD_INVALID, HttpStatus.UNAUTHORIZED);
         }
         String encryptedPassword = CryptoUtil.encrypt(request.newPassword());
         user.setPassword(encryptedPassword);
@@ -116,9 +115,6 @@ public class UserService {
             LocalDateTime expiration = LocalDateTime.now().plusMinutes(TokenAccess.TOKEN_DURATION_RECOVERY_PASSWORD_MIN);
             return tokenAccessRepository.save(TokenAccess.create(user, expiration));
         });
-    }
-
-    public void recoveryPassword(String token, String newPassword) {
     }
 
 }

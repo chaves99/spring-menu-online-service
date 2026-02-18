@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users(
     website VARCHAR,
     phone VARCHAR,
     whatsapp VARCHAR,
+    image VARCHAR,
     code VARCHAR(20),
     city VARCHAR(100),
     address_line VARCHAR(250),

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
@@ -11,19 +12,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.menuonline.exceptions.HttpServiceException;
 import com.menuonline.entity.Product;
+import com.menuonline.entity.UserEntity;
 import com.menuonline.exceptions.ErrorHandlerResponse.ErrorMessages;
+import com.menuonline.exceptions.HttpServiceException;
 import com.menuonline.repository.ProductRepository;
+import com.menuonline.repository.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -34,12 +35,16 @@ public class SimpleStorageBucketSerivce {
 
     private final ProductRepository productRepository;
 
+    private final UserRepository userRepository;
+
     private final S3Client s3Client;
 
     private final BucketConfig bucketConfig;
 
-    public SimpleStorageBucketSerivce(ProductRepository productRepository,
+    public SimpleStorageBucketSerivce(UserRepository userRepository,
+            ProductRepository productRepository,
             BucketConfig bucketConfig) {
+        this.userRepository = userRepository;
         this.productRepository = productRepository;
         log.info("constructor - bucketConfig: {}", bucketConfig);
         this.bucketConfig = bucketConfig;
@@ -55,8 +60,15 @@ public class SimpleStorageBucketSerivce {
                 .build();
     }
 
-    public void upload(Long userId, Long productId, MultipartFile file) throws IOException {
-        String bucketKey = getBucketKey(userId, productId);
+    public void uploadProduct(Long userId, Long productId, MultipartFile file) throws IOException {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
+
+        if (product.getImage() != null) {
+            this.delete(product.getImage());
+        }
+
+        String bucketKey = buildProductKey(userId, productId);
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucketConfig.bucketName())
                 .key(bucketKey)
@@ -67,27 +79,27 @@ public class SimpleStorageBucketSerivce {
 
         log.info("upload image: success:{}", putObject.sdkHttpResponse().isSuccessful());
 
-        Product product = productRepository.findById(productId)
-            .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
         product.setImage(this.getImageUrl(bucketKey));
         productRepository.save(product);
 
     }
 
-    public byte[] getImage(Long userId, Long productId) throws IOException {
+    public void delete(Long userId, Long productId) throws IOException {
+        this.delete(buildProductKey(userId, productId));
+    }
+
+    public void delete(String keyName) throws IOException {
         try {
-            ResponseInputStream<GetObjectResponse> object = s3Client.getObject(req -> {
-                req.bucket(bucketConfig.bucketName())
-                        .key(getBucketKey(userId, productId));
+            s3Client.deleteObject(req -> {
+                req.bucket(bucketConfig.bucketName());
+                req.key(keyName);
             });
-            return object.readAllBytes();
-        } catch (NoSuchKeyException e) {
-            return null;
+        } catch (NoSuchKeyException ignored) {
         }
     }
 
-    private String getBucketKey(Long userId, Long productId) {
-        return "user_" + userId + "/" + "product_" + productId;
+    private String buildProductKey(Long userId, Long productId) {
+        return "user_" + userId + "/" + "product_" + productId + "/" + UUID.randomUUID().toString();
     }
 
     private String getImageUrl(String key) {
@@ -126,4 +138,23 @@ public class SimpleStorageBucketSerivce {
         public BucketConfig {
         }
     }
+
+    public String uploadEstablishment(UserEntity user, MultipartFile file) throws IOException {
+        if (user.getImage() != null) {
+            this.delete(user.getImage());
+        }
+        String key = "user_" + user.getId() + "/establishment/" + UUID.randomUUID().toString();
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketConfig.bucketName())
+                .key(key)
+                .build();
+        RequestBody fromInputStream = RequestBody.fromInputStream(file.getInputStream(), file.getSize());
+        s3Client.putObject(putObjectRequest, fromInputStream);
+
+        String imageUrl = getImageUrl(key);
+        user.setImage(imageUrl);
+        userRepository.save(user);
+        return imageUrl;
+    }
+
 }

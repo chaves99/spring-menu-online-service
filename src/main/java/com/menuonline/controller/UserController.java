@@ -1,11 +1,15 @@
 package com.menuonline.controller;
 
+import java.io.IOException;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.menuonline.config.AuthFilter;
 import com.menuonline.entity.TokenAccess;
@@ -15,6 +19,7 @@ import com.menuonline.payloads.LoginUserRequest;
 import com.menuonline.payloads.LoginUserResponse;
 import com.menuonline.payloads.UpdatePasswordRequest;
 import com.menuonline.service.MockMenuService;
+import com.menuonline.service.SimpleStorageBucketSerivce;
 import com.menuonline.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserService userService;
+    private final SimpleStorageBucketSerivce bucketSerivce;
     private final MockMenuService mockMenuService;
 
     @PostMapping
@@ -64,6 +70,15 @@ public class UserController {
         return userService.get(token)
                 .map(t -> ResponseEntity.ok(LoginUserResponse.from(t)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/image")
+    public ResponseEntity<LoginUserResponse> putImage(HttpServletRequest request,
+            @RequestParam("image_file") MultipartFile file) throws IOException {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
+        String imageUrl = bucketSerivce.uploadEstablishment(user, file);
+        return ResponseEntity.ok(LoginUserResponse.from(user, token, imageUrl));
     }
 
 }
