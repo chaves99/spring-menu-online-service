@@ -17,8 +17,8 @@ public record CustomerMenuResponse(
             List<ProductMenuProjection> projection) {
         EstablishmentInfoResponse info = new EstablishmentInfoResponse(user.getId(),
                 user.getEstablishmentName(), user.getInstagram(), user.getFacebook(),
-                user.getWebsite(), user.getWhatsapp(), user.getPhone(), user.getAddressLine(),
-                user.getCode(), user.getCity());
+                user.getWebsite(), user.getWhatsapp(), user.getPhone(), user.getImage(),
+                user.getAddressLine(), user.getCode(), user.getCity());
 
         List<ScheduleResponse> scheduleResponses = ScheduleResponse.from(schedules);
 
@@ -87,6 +87,7 @@ public record CustomerMenuResponse(
             String website,
             String whatsapp,
             String phone,
+            String image,
             String addressLine,
             String addressCode,
             String city) {
