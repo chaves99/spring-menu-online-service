@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthFilter extends OncePerRequestFilter {
 
     private static final UrlPathMethod[] FREE_URI = {
+            new UrlPathMethod("/stripe/webhook", "POST"),
             new UrlPathMethod("/user", "POST"),
             new UrlPathMethod("/user/login", "POST"),
             new UrlPathMethod("/menu/*", "POST"),

@@ -18,30 +18,33 @@ import lombok.extern.slf4j.Slf4j;
 @Deprecated // It will not be used for now probably in the future
 public class EmailService {
 
-    // @Value("${mailgun.apikey}")
-    // private String apiKey;
-    //
-    // @Value("${mailgun.url}")
-    // private String mailgunUrl;
+    @Value("${mailgun.apikey}")
+    private String apiKey;
+
+    @Value("${mailgun.url}")
+    private String mailgunUrl;
 
     public void recovery(String emailTo, String token) {
-        // String basicAuth = "api:" + apiKey;
-        // MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
-        // parts.add("from", "");
-        // parts.add("to", "");
-        // // parts.add("subject", subject);
-        // // parts.add("text", text);
-        // ResponseSpec responseSpec = RestClient
-        //         .create()
-        //         .post()
-        //         .uri(mailgunUrl)
-        //         .body(parts)
-        //         .headers(h -> {
-        //             h.add("Content-Type", "multipart/form-data");
-        //             h.add("Authorization", "Basic " + Base64.getEncoder().encodeToString(basicAuth.getBytes()));
-        //         }).retrieve();
-        // System.out.println("response: " + responseSpec.toBodilessEntity());
-        // log.info("send = apiKey:{} mailgunUrl:{}", apiKey, mailgunUrl);
+        String basicAuth = "api:" + apiKey;
+        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+        parts.add("from", "");
+        parts.add("to", "");
+        // parts.add("subject", subject);
+        // parts.add("text", text);
+        ResponseSpec responseSpec = RestClient
+                .create()
+                .post()
+                .uri("https://api.mailgun.net/v3/" + mailgunUrl + "/messages")
+                .body(parts)
+                .headers(h -> {
+                    h.add("Content-Type", "multipart/form-data");
+                    h.add("Authorization", "Basic " + Base64.getEncoder().encodeToString(basicAuth.getBytes()));
+                }).retrieve();
+        System.out.println("response: " + responseSpec.toBodilessEntity());
+        log.info("send = apiKey:{} mailgunUrl:{}", apiKey, mailgunUrl);
+    }
+
+    public void qrcode(String emailTo, byte[] file) {
     }
 
 }
