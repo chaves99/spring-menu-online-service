@@ -16,6 +16,10 @@ CREATE TABLE IF NOT EXISTS users(
     updated_at TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS subscription(
+    stripe_id VARCHAR;
+);
+
 CREATE TABLE IF NOT EXISTS schedule(
     id SERIAL PRIMARY KEY,
     days VARCHAR(60),
