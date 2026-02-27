@@ -29,6 +29,8 @@ import lombok.ToString;
 @EqualsAndHashCode
 @EntityListeners(AuditingEntityListener.class)
 public class UserEntity {
+    
+    private static final int RECOVERY_TOKEN_EXPIRATION_TIME_IN_MINUTES = 5;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -65,6 +67,10 @@ public class UserEntity {
 
     private String addressLine;
 
+    private String resetPasswordToken;
+
+    private LocalDateTime resetPasswordTokenCreation;
+
     @Column(name = "created_at")
     @CreatedDate
     private LocalDateTime createdAt;
@@ -77,5 +83,25 @@ public class UserEntity {
     public String toString() {
         return "UserEntity[" + id + " - " + email + "]";
     }
-    
+
+    public static boolean canGenerateRecoveryToken(UserEntity user) {
+        if (user.getResetPasswordToken() == null)
+            return true;
+
+        return user.getResetPasswordTokenCreation()
+            .isBefore(LocalDateTime.now().minusMinutes(RECOVERY_TOKEN_EXPIRATION_TIME_IN_MINUTES));
+    }
+
+    public static boolean canUpdatePassword(UserEntity user, String token) {
+        if (user.getResetPasswordToken() == null || token == null) 
+            return false;
+
+        if (!user.getResetPasswordToken().equals(token))
+            return false;
+
+        LocalDateTime now = LocalDateTime.now();
+        return user.getResetPasswordTokenCreation().isAfter(now.minusMinutes(RECOVERY_TOKEN_EXPIRATION_TIME_IN_MINUTES))
+                && user.getResetPasswordTokenCreation().isBefore(now);
+    }
+
 }

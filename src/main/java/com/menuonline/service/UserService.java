@@ -13,11 +13,13 @@ import com.menuonline.exceptions.ErrorHandlerResponse.ErrorMessages;
 import com.menuonline.exceptions.HttpServiceException;
 import com.menuonline.payloads.CreateUserRequest;
 import com.menuonline.payloads.LoginUserRequest;
+import com.menuonline.payloads.ResetPasswordRequest;
 import com.menuonline.payloads.UpdatePasswordRequest;
 import com.menuonline.repository.TokenAccessRepository;
 import com.menuonline.repository.UserRepository;
 import com.menuonline.utils.CryptoUtil;
 import com.menuonline.utils.TokenAccessUtil;
+import com.menuonline.utils.TokenGeneratorUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,12 +49,6 @@ public class UserService {
             throw new HttpServiceException(
                     ErrorMessages.PASSWORD_INVALID, HttpStatus.UNAUTHORIZED);
         }
-        String encryptedPassword = CryptoUtil.encrypt(request.newPassword());
-        user.setPassword(encryptedPassword);
-        userRepository.save(user);
-    }
-
-    public void resetPassword(UserEntity user, UpdatePasswordRequest request) {
         String encryptedPassword = CryptoUtil.encrypt(request.newPassword());
         user.setPassword(encryptedPassword);
         userRepository.save(user);
@@ -106,15 +102,56 @@ public class UserService {
         return tokenAccessRepository.save(TokenAccess.create(user, expiration));
     }
 
-    public Optional<TokenAccess> generateByEmail(String email) {
+    public Optional<TokenAccess> generateTokenAccessByEmail(String email) {
         Optional<UserEntity> byEmail = userRepository.findByEmail(email);
         if (byEmail.isEmpty())
             return Optional.empty();
 
         return byEmail.map(user -> {
-            LocalDateTime expiration = LocalDateTime.now().plusMinutes(TokenAccess.TOKEN_DURATION_RECOVERY_PASSWORD_MIN);
+            LocalDateTime expiration = LocalDateTime.now()
+                    .plusMinutes(TokenAccess.TOKEN_DURATION_RECOVERY_PASSWORD_MIN);
             return tokenAccessRepository.save(TokenAccess.create(user, expiration));
         });
+    }
+
+    public String generateRecoveryToken(String email) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new HttpServiceException(null, HttpStatus.UNAUTHORIZED));
+
+        if (!UserEntity.canGenerateRecoveryToken(user)) {
+            throw new HttpServiceException(ErrorMessages.UNAUTHORIZED_TO_GENERATE_RECOVERY_CODE,
+                    HttpStatus.UNAUTHORIZED);
+        }
+
+        String token = TokenGeneratorUtil.generate(TokenGeneratorUtil.DEFAULT_PASSWORD_RECOVERY_TOKEN_SIZE);
+        user.setResetPasswordToken(token);
+        user.setResetPasswordTokenCreation(LocalDateTime.now());
+        userRepository.save(user);
+        log.info("generateToken - email:{}", token);
+
+        return token;
+    }
+
+    public boolean validateRecoveryToken(String email, String token) {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new HttpServiceException(null, HttpStatus.UNAUTHORIZED));
+        boolean canUpdatePassword = UserEntity.canUpdatePassword(user, token);
+        log.info("validateRecoveryToken - email:{} canUpdatePassword:{}", email, canUpdatePassword);
+        return canUpdatePassword;
+    }
+
+    public void resetPassword(ResetPasswordRequest request) {
+        log.info("resetPassword - email:{}", request.email());
+        UserEntity user = userRepository.findByEmail(request.email())
+            .orElseThrow(() -> new HttpServiceException(null, HttpStatus.UNAUTHORIZED));
+        if (!UserEntity.canUpdatePassword(user, request.token())) {
+            throw new HttpServiceException(null, HttpStatus.UNAUTHORIZED);
+        }
+
+        user.setPassword(CryptoUtil.encrypt(request.newPassword()));
+        user.setResetPasswordToken(null);
+        user.setResetPasswordTokenCreation(null);
+        userRepository.save(user);
     }
 
 }

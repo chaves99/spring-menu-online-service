@@ -29,6 +29,7 @@ public class ErrorHandlerResponse {
     }
 
     public static enum ErrorMessages {
+        UNAUTHORIZED_TO_GENERATE_RECOVERY_CODE,
         PASSWORD_INVALID,
         EMAIL_EXISTS,
         ESTABLISHMENT_EXISTS,

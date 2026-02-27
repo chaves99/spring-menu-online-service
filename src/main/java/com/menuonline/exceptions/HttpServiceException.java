@@ -15,7 +15,6 @@ public class HttpServiceException extends RuntimeException {
 
     private final HttpStatus status;
 
-
     public static HttpServiceException notFound() {
         return new HttpServiceException(ErrorMessages.ENTITY_NOT_FOUND, HttpStatus.NOT_FOUND);
     }

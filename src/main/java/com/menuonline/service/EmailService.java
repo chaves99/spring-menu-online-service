@@ -13,10 +13,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
-@Deprecated // It will not be used for now probably in the future
+@RequiredArgsConstructor
 public class EmailService {
+
+    @Value("${mailgun.hostFrom}")
+    private String hostFrom;
 
     @Value("${mailgun.apikey}")
     private String apiKey;
@@ -24,24 +26,34 @@ public class EmailService {
     @Value("${mailgun.url}")
     private String mailgunUrl;
 
-    public void recovery(String emailTo, String token) {
+    private final RestClient.Builder restClientBuilder;
+
+    public void sendToken(String emailTo, String htmlTemplate) {
+        try {
+            MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+            parts.add("from", hostFrom);
+            parts.add("to", emailTo);
+            parts.add("subject", "Recuperar senha");
+            parts.add("html", htmlTemplate);
+
+            ResponseSpec responseSpec = getClient().post().body(parts).retrieve();
+            log.info("sendToken - success:{}", responseSpec.toEntity(String.class).getStatusCode().is2xxSuccessful());
+        } catch (Exception e) {
+            log.warn("sendToken - exception: ", e);
+            throw e;
+        }
+    }
+
+    private RestClient getClient() {
         String basicAuth = "api:" + apiKey;
-        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
-        parts.add("from", "");
-        parts.add("to", "");
-        // parts.add("subject", subject);
-        // parts.add("text", text);
-        ResponseSpec responseSpec = RestClient
-                .create()
-                .post()
-                .uri("https://api.mailgun.net/v3/" + mailgunUrl + "/messages")
-                .body(parts)
-                .headers(h -> {
+        return restClientBuilder
+                .baseUrl("https://api.mailgun.net/v3/" + mailgunUrl + "/messages")
+                .defaultHeaders(h -> {
                     h.add("Content-Type", "multipart/form-data");
                     h.add("Authorization", "Basic " + Base64.getEncoder().encodeToString(basicAuth.getBytes()));
-                }).retrieve();
-        System.out.println("response: " + responseSpec.toBodilessEntity());
-        log.info("send = apiKey:{} mailgunUrl:{}", apiKey, mailgunUrl);
+                })
+                .build();
+
     }
 
     public void qrcode(String emailTo, byte[] file) {

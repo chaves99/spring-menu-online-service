@@ -46,7 +46,6 @@ public class SimpleStorageBucketSerivce {
             BucketConfig bucketConfig) {
         this.userRepository = userRepository;
         this.productRepository = productRepository;
-        log.info("constructor - bucketConfig: {}", bucketConfig);
         this.bucketConfig = bucketConfig;
 
         AwsBasicCredentials awsBasicCredentials = AwsBasicCredentials
