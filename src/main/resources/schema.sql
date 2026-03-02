@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS token_access(
 CREATE TABLE IF NOT EXISTS categories(
     id SERIAL PRIMARY KEY,
     name VARCHAR(80) NOT NULL,
+    sequence INTEGER NOT NULL DEFAULT 0,
     enabled BOOLEAN DEFAULT TRUE,
     user_id INTEGER NOT NULL REFERENCES users(id),
     created_at TIMESTAMP NOT NULL,

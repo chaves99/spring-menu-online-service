@@ -48,7 +48,7 @@ public class ProductService {
                     .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
             specs.add(ProductSpecification.isCategory(category));
         } else {
-            specs.add(ProductSpecification.inCategoryList(categoryRepository.findByUserId(user.getId())));
+            specs.add(ProductSpecification.inCategoryList(categoryRepository.findByUserIdOrderBySequence(user.getId())));
         }
         if (filter.name() != null) {
             specs.add(ProductSpecification.byName(filter.name()));

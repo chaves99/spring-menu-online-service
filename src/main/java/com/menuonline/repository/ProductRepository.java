@@ -98,7 +98,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             where u.id = :userId
             and c.enabled is true
             and p.active is true
-            order by c.name, p.name, pr.value
+            order by c.sequence, p.name, pr.value
             """)
     List<ProductMenuProjection> findMenu(long userId);
 

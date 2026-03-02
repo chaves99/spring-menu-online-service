@@ -12,7 +12,7 @@ import com.menuonline.entity.Category;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
-    public List<Category> findByUserId(Long id);
+    public List<Category> findByUserIdOrderBySequence(Long id);
 
     @Query(value = "update categories set enabled = 'false' where user_id = :userId and id = :id",
         nativeQuery = true)

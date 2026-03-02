@@ -3,6 +3,7 @@ package com.menuonline.entity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -23,14 +24,12 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 @Entity
 @Table(name = "categories")
 @Getter
 @Setter
 @EqualsAndHashCode
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
@@ -43,6 +42,8 @@ public class Category {
     private String name;
 
     private boolean enabled;
+
+    private Integer sequence;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -58,4 +59,14 @@ public class Category {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Override
+    public String toString() {
+        StringJoiner sj = new StringJoiner(",", "[", "]");
+        sj.add("id: " + id)
+            .add("name: " + name)
+            .add("enabled: " + enabled)
+            .add("sequence: " + sequence);
+        return sj.toString();
+    }
 }

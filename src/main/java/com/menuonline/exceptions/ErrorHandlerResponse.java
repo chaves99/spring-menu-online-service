@@ -5,6 +5,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestControllerAdvice
 public class ErrorHandlerResponse {
 
@@ -20,6 +23,7 @@ public class ErrorHandlerResponse {
 
     @ExceptionHandler({ HttpServiceException.class })
     public ResponseEntity<ErrorDetail> customError(HttpServiceException except) {
+        log.warn("customError - exception message: {}", except.getMessage());
         return ResponseEntity
                 .status(except.getStatus())
                 .body(new ErrorDetail(except.getMessageEnum()));

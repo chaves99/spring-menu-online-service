@@ -1,6 +1,7 @@
 package com.menuonline.controller;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -41,7 +42,7 @@ public class CategoryController {
             @RequestBody List<CategoryRequest> body) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         List<Category> list = body.stream()
-                .map(c -> new Category(null, c.name(), true, user, null, null, null))
+                .map(c -> new Category(null, c.name(), true, c.order(), user, null, null, null))
                 .toList();
         categoryRepository.saveAll(list);
         return ResponseEntity.ok(findAll(user.getId()));
@@ -53,18 +54,43 @@ public class CategoryController {
         return ResponseEntity.ok(findAll(user.getId()));
     }
 
+    @PutMapping("/sequence")
+    @Transactional
+    public ResponseEntity<List<CategoryResponse>> updateSequence(HttpServletRequest request,
+            @RequestBody UpdateCategoriesOrderRequest[] body) {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        List<Category> categories = categoryRepository.findByUserIdOrderBySequence(user.getId());
+        List<Category> listUpdate = new ArrayList<>();
+        for(UpdateCategoriesOrderRequest cat : body) {
+            Category toUpdate = null;
+            for(Category c : categories) {
+                if(c.getId().equals(cat.id())) {
+                    toUpdate = c;
+                    break;
+                }
+            }
+
+            if (toUpdate == null) {
+                // throw excption it should not happen
+            }
+            toUpdate.setSequence(cat.sequence());
+            listUpdate.add(toUpdate);
+        }
+        return ResponseEntity.ok(findAll(user.getId()));
+    }
+
+    public static record UpdateCategoriesOrderRequest(Long id, Integer sequence) {}
+
     @PutMapping("/disable/{id}")
     @Transactional
     public ResponseEntity<List<CategoryResponse>> disable(HttpServletRequest request,
             @PathVariable Long id) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
-        log.info("disable - id: {}", id);
         categoryRepository.findByUserIdAndId(user.getId(), id)
             .ifPresent(cat -> {
                 cat.setEnabled(!cat.isEnabled());
                 categoryRepository.save(cat);
             });
-        // categoryRepository.disable(user.getId(), id);
         return ResponseEntity.ok(findAll(user.getId()));
     }
 
@@ -83,16 +109,17 @@ public class CategoryController {
     }
 
     private List<CategoryResponse> findAll(Long userId) {
-        List<Category> categories = categoryRepository.findByUserId(userId);
+        List<Category> categories = categoryRepository.findByUserIdOrderBySequence(userId);
         return categories.stream().map(CategoryResponse::from).toList();
     }
 
-    public static record CategoryRequest(String name) {
+    public static record CategoryRequest(String name, int order) {
     }
 
     public static record CategoryResponse(Long id,
             String name,
             boolean enabled,
+            int sequence,
             LocalDateTime createdAt,
             LocalDateTime updatedAt) {
 
@@ -100,9 +127,9 @@ public class CategoryController {
             return new CategoryResponse(c.getId(),
                     c.getName(),
                     c.isEnabled(),
+                    c.getSequence(),
                     c.getCreatedAt(),
                     c.getUpdatedAt());
         }
     }
-
 }
