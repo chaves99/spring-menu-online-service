@@ -12,12 +12,10 @@ CREATE TABLE IF NOT EXISTS users(
     code VARCHAR(20),
     city VARCHAR(100),
     address_line VARCHAR(250),
+    reset_password_token VARCHAR(20) UNIQUE,
+    reset_password_token_creation TIMESTAMP,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS subscription(
-    stripe_id VARCHAR;
 );
 
 CREATE TABLE IF NOT EXISTS schedule(
