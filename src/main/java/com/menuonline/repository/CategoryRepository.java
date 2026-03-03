@@ -14,6 +14,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     public List<Category> findByUserIdOrderBySequence(Long id);
 
+    public int countByUserIdOrderBySequence(Long id);
+
     @Query(value = "update categories set enabled = 'false' where user_id = :userId and id = :id",
         nativeQuery = true)
     public void disable(Long userId, Long id);

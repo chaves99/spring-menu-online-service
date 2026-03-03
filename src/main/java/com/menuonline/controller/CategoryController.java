@@ -38,13 +38,16 @@ public class CategoryController {
     private final ProductRepository productRepository;
 
     @PostMapping
+    @Transactional
     public ResponseEntity<List<CategoryResponse>> create(HttpServletRequest request,
             @RequestBody List<CategoryRequest> body) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
-        List<Category> list = body.stream()
-                .map(c -> new Category(null, c.name(), true, c.order(), user, null, null, null))
-                .toList();
-        categoryRepository.saveAll(list);
+        int sequence = categoryRepository.countByUserIdOrderBySequence(user.getId()) + 1;
+        List<Category> categories = new ArrayList<>();
+        for (var c : body) {
+            categories.add(new Category(null, c.name(), true, sequence++, user, null, null, null));
+        }
+        categoryRepository.saveAll(categories);
         return ResponseEntity.ok(findAll(user.getId()));
     }
 
@@ -61,10 +64,10 @@ public class CategoryController {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         List<Category> categories = categoryRepository.findByUserIdOrderBySequence(user.getId());
         List<Category> listUpdate = new ArrayList<>();
-        for(UpdateCategoriesOrderRequest cat : body) {
+        for (UpdateCategoriesOrderRequest cat : body) {
             Category toUpdate = null;
-            for(Category c : categories) {
-                if(c.getId().equals(cat.id())) {
+            for (Category c : categories) {
+                if (c.getId().equals(cat.id())) {
                     toUpdate = c;
                     break;
                 }
@@ -79,7 +82,8 @@ public class CategoryController {
         return ResponseEntity.ok(findAll(user.getId()));
     }
 
-    public static record UpdateCategoriesOrderRequest(Long id, Integer sequence) {}
+    public static record UpdateCategoriesOrderRequest(Long id, Integer sequence) {
+    }
 
     @PutMapping("/disable/{id}")
     @Transactional
@@ -87,10 +91,10 @@ public class CategoryController {
             @PathVariable Long id) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         categoryRepository.findByUserIdAndId(user.getId(), id)
-            .ifPresent(cat -> {
-                cat.setEnabled(!cat.isEnabled());
-                categoryRepository.save(cat);
-            });
+                .ifPresent(cat -> {
+                    cat.setEnabled(!cat.isEnabled());
+                    categoryRepository.save(cat);
+                });
         return ResponseEntity.ok(findAll(user.getId()));
     }
 
@@ -113,7 +117,7 @@ public class CategoryController {
         return categories.stream().map(CategoryResponse::from).toList();
     }
 
-    public static record CategoryRequest(String name, int order) {
+    public static record CategoryRequest(String name, Integer order) {
     }
 
     public static record CategoryResponse(Long id,
