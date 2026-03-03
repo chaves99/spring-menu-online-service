@@ -20,6 +20,8 @@ import com.menuonline.entity.Category;
 import com.menuonline.entity.Product;
 import com.menuonline.entity.UserEntity;
 import com.menuonline.exceptions.HttpServiceException;
+import com.menuonline.exceptions.ErrorHandlerResponse.ErrorMessages;
+import com.menuonline.payloads.CustomerMenuResponse.CategoryResponse;
 import com.menuonline.repository.CategoryRepository;
 import com.menuonline.repository.ProductRepository;
 
@@ -54,6 +56,24 @@ public class CategoryController {
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getAll(HttpServletRequest request) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        return ResponseEntity.ok(findAll(user.getId()));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<List<CategoryResponse>> update(HttpServletRequest request,
+            @PathVariable Long id,
+            @RequestBody UpdateCategoryRequest body) {
+
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        Category category = categoryRepository.findByUserIdAndId(user.getId(), id)
+            .orElseThrow(() -> new HttpServiceException(ErrorMessages.ENTITY_NOT_FOUND, HttpStatus.NOT_FOUND));
+
+        if (body.name() != null) {
+            category.setName(body.name());
+        }
+
+        categoryRepository.save(category);
+
         return ResponseEntity.ok(findAll(user.getId()));
     }
 
@@ -119,6 +139,8 @@ public class CategoryController {
 
     public static record CategoryRequest(String name, Integer order) {
     }
+
+    public static record UpdateCategoryRequest(String name){}
 
     public static record CategoryResponse(Long id,
             String name,
