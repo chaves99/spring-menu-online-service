@@ -3,11 +3,13 @@ package com.menuonline.service;
 import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClient.ResponseSpec;
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +58,28 @@ public class EmailService {
 
     }
 
-    public void qrcode(String emailTo, byte[] file) {
+    public void sendQrcode(String emailTo, MultipartFile file) throws Exception {
+        try {
+            var resource = new ByteArrayResource(file.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return file.getName();
+                }
+            };
+
+            MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+            parts.add("from", hostFrom);
+            parts.add("to", emailTo);
+            parts.add("subject", "Seu ItiMenu QR Code chegou!");
+            parts.add("attachment", resource);
+            parts.add("text", "Aqui esta seu QR Code:");
+
+            ResponseSpec responseSpec = getClient().post().body(parts).retrieve();
+            log.info("sendToken - success:{}", responseSpec.toEntity(String.class).getStatusCode().is2xxSuccessful());
+        } catch (Exception e) {
+            log.warn("sendToken - exception: ", e);
+            throw e;
+        }
     }
 
 }

@@ -19,9 +19,8 @@ import com.menuonline.config.AuthFilter;
 import com.menuonline.entity.Category;
 import com.menuonline.entity.Product;
 import com.menuonline.entity.UserEntity;
-import com.menuonline.exceptions.HttpServiceException;
 import com.menuonline.exceptions.ErrorHandlerResponse.ErrorMessages;
-import com.menuonline.payloads.CustomerMenuResponse.CategoryResponse;
+import com.menuonline.exceptions.HttpServiceException;
 import com.menuonline.repository.CategoryRepository;
 import com.menuonline.repository.ProductRepository;
 
