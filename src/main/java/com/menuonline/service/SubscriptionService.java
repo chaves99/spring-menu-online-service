@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import com.menuonline.entity.Subscription;
@@ -64,9 +63,9 @@ public class SubscriptionService {
                         () -> {
                             Subscription subs = new Subscription();
                             subs.setStatus(Subscription.Status.ACTIVE);
-                            subs.setEndDate(stripeSubscription.getEndedAt());
+                            // subs.setEndDate(stripeSubscription.getEndedAt());
                             subs.setCustomerId(customerId);
-                            subs.setId(stripeSubscription.id());
+                            // subs.setId(stripeSubscription.id());
                             subs.setUser(user);
                             log.info("updateSubs - new subs:{}", subs);
                             subscriptionRepository.save(subs);
