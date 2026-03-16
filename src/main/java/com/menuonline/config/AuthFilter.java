@@ -27,7 +27,6 @@ public class AuthFilter extends OncePerRequestFilter {
 
     private static final UrlPathMethod[] FREE_URI = {
             new UrlPathMethod("/stripe/webhook", "POST"),
-            new UrlPathMethod("/stripe/webhook/simulate/**", "GET"),
             new UrlPathMethod("/user", "POST"),
             new UrlPathMethod("/subscription/test/**", "GET"),
             new UrlPathMethod("/user/generate-token/*", "GET"),

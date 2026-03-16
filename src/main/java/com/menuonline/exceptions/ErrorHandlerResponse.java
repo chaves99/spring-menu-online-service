@@ -26,13 +26,19 @@ public class ErrorHandlerResponse {
             .map(ste -> ste.getClassName() + ":" + ste.getLineNumber() + "\n" )
             .filter(className -> className.contains("menuonline"))
             .toList();
-        log.warn("genericError - msg: {} getStackTrace:{}", except.getMessage(), stackTrace);
+        log.warn("genericError - msg: {} getStackTrace:{}", except.getLocalizedMessage(), stackTrace);
         return ResponseEntity.internalServerError().body(new ErrorDetail(ErrorMessages.INTERNAL_ERROR));
     }
 
     @ExceptionHandler({ HttpServiceException.class })
     public ResponseEntity<ErrorDetail> customError(HttpServiceException except) {
-        log.warn("customError - exception message: {}", except.getMessage());
+        log.warn("customError - exception message: {}", except.getLocalizedMessage());
+        List<String> stackTrace = Stream
+            .of(except.getStackTrace())
+            .map(ste -> ste.getClassName() + ":" + ste.getLineNumber() + "\n" )
+            .filter(className -> className.contains("menuonline"))
+            .toList();
+        log.warn("genericError - msg: {} getStackTrace:{}", except.getMessage(), stackTrace);
         return ResponseEntity
                 .status(except.getStatus())
                 .body(new ErrorDetail(except.getMessageEnum()));
@@ -45,7 +51,6 @@ public class ErrorHandlerResponse {
         UNAUTHORIZED_TO_GENERATE_RECOVERY_CODE,
         PASSWORD_INVALID,
         EMAIL_EXISTS,
-        ESTABLISHMENT_EXISTS,
         ESTABLISHMENT_NOT_EXISTS,
         INTERNAL_ERROR,
         NO_RESOURCE_FOUND,

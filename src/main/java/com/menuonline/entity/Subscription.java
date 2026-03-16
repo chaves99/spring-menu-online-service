@@ -44,7 +44,7 @@ public class Subscription {
 
     private Boolean freeTier;
 
-    private LocalDateTime endDate;
+    private LocalDateTime endAt;
 
     @CreatedDate
     @Column(name = "created_at")
@@ -66,7 +66,7 @@ public class Subscription {
         sj.add("description:" + description);
         sj.add("status:" + status);
         sj.add("freeTier:" + freeTier);
-        sj.add("endDate:" + endDate);
+        sj.add("endAt:" + endAt);
         sj.add("createdAt:" + createdAt);
         sj.add("updatedAt:" + updatedAt);
         sj.add("user:" + user.getEmail());

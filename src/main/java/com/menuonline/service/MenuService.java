@@ -32,10 +32,10 @@ public class MenuService {
 
     private final ProductRepository productRepository;
 
-    public Optional<CustomerMenuResponse> get(String establishment) {
-        log.info("get - establishment:{}", establishment);
+    public Optional<CustomerMenuResponse> get(String establishmentUrl) {
+        log.info("get - establishmentUrl:{}", establishmentUrl);
         try {
-            UserEntity info = userRepository.findByEstablishmentName(establishment)
+            UserEntity info = userRepository.findByEstablishmentUrl(establishmentUrl)
                     .orElseThrow(() -> new HttpServiceException(ErrorMessages.ESTABLISHMENT_NOT_EXISTS,
                             HttpStatus.NOT_FOUND));
 
@@ -62,7 +62,7 @@ public class MenuService {
         }
         Subscription subs = current.get();
 
-        if (subs.getFreeTier() && subs.getEndDate().isAfter(LocalDateTime.now())) {
+        if (subs.getFreeTier() && subs.getEndAt().isAfter(LocalDateTime.now())) {
             return true;
         }
 

@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +37,7 @@ public class UserService {
         UserEntity user = new UserEntity();
         user.setEmail(request.email());
         user.setPassword(CryptoUtil.encrypt(request.password()));
+        user.setEstablishmentUrl(TokenGeneratorUtil.generate(20));
         user.setEstablishmentName(request.establishmentName());
         UserEntity save = userRepository.save(user);
 
@@ -60,10 +60,6 @@ public class UserService {
         if (byEmail.isPresent()) {
             throw new HttpServiceException(ErrorMessages.EMAIL_EXISTS, HttpStatus.CONFLICT);
         }
-        Optional<UserEntity> byEstablishmentName = userRepository.findByEstablishmentName(request.establishmentName());
-        if (byEstablishmentName.isPresent()) {
-            throw new HttpServiceException(ErrorMessages.ESTABLISHMENT_EXISTS, HttpStatus.CONFLICT);
-        }
     }
 
     public TokenAccess login(LoginUserRequest request) {
@@ -72,6 +68,7 @@ public class UserService {
                 .orElseThrow(() -> new HttpServiceException(null, HttpStatus.UNAUTHORIZED));
 
         if (!CryptoUtil.validate(request.password(), user.getPassword())) {
+            log.warn("login - password not valid - email: {}", request.email());
             throw new HttpServiceException(null, HttpStatus.UNAUTHORIZED);
         }
 

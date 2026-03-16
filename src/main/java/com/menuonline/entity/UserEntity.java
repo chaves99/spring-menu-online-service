@@ -39,8 +39,9 @@ public class UserEntity {
 
     private String password;
 
-    @Column(name = "establishment_name")
     private String establishmentName;
+
+    private String establishmentUrl;
 
     private String instagram;
 

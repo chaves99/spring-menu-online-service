@@ -13,7 +13,7 @@ public record SubscriptionResponse(String id, Boolean freeTier,
         return new SubscriptionResponse(subs.getId(),
                 subs.getFreeTier(),
                 subs.getStatus(),
-                subs.getEndDate(),
+                subs.getEndAt(),
                 subs.getCreatedAt());
     }
 }

@@ -2,8 +2,9 @@ CREATE TABLE IF NOT EXISTS users(
     id SERIAL PRIMARY KEY,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(100) NOT NULL,
-    establishment_name VARCHAR(150) UNIQUE NOT NULL,
+    establishment_name VARCHAR(150),
     establishment_description VARCHAR(150), -- TODO it is not been used yet
+    establishment_url VARCHAR(100) UNIQUE NOT NULL,
     instagram VARCHAR,
     facebook VARCHAR,
     website VARCHAR,
@@ -22,10 +23,10 @@ CREATE TABLE IF NOT EXISTS users(
 CREATE TABLE subscription (
     id VARCHAR(250) PRIMARY KEY,
     customer_id VARCHAR(200),
-    discription VARCHAR(150) NOT NULL,
+    description VARCHAR(150) NOT NULL,
     status VARCHAR(50) NOT NULL,
     free_tier BOOLEAN DEFAULT TRUE,
-    ended_at TIMESTAMP NOT NULL,
+    end_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     user_id INTEGER NOT NULL REFERENCES users(id)
@@ -53,7 +54,7 @@ CREATE TABLE IF NOT EXISTS categories(
     name VARCHAR(80) NOT NULL,
     sequence INTEGER NOT NULL DEFAULT 0,
     enabled BOOLEAN DEFAULT TRUE,
-    user_id INTEGER NOT NULL REFERENCES users(id),
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP
 );
@@ -64,7 +65,7 @@ CREATE TABLE IF NOT EXISTS products(
     description VARCHAR(320),
     image VARCHAR,
     active BOOLEAN DEFAULT TRUE,
-    category_id INTEGER NOT NULL REFERENCES categories(id),
+    category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP
 );
@@ -73,6 +74,6 @@ CREATE TABLE IF NOT EXISTS prices(
     id BIGSERIAL PRIMARY KEY,
     value DECIMAL(8, 2) NOT NULL,
     unit VARCHAR(30),
-    product_id INTEGER NOT NULL REFERENCES products(id)
+    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE
 );
 

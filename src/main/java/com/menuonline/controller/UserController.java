@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.menuonline.config.AuthFilter;
+import com.menuonline.entity.Subscription;
 import com.menuonline.entity.TokenAccess;
 import com.menuonline.entity.UserEntity;
 import com.menuonline.payloads.CreateUserRequest;

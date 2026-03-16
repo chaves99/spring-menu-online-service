@@ -28,12 +28,13 @@ public class SubscriptionService {
 
     public Subscription createFreeTier(UserEntity user) {
         Subscription subs = new Subscription();
+        user.getSubscriptions().add(subs);
         subs.setUser(user);
         subs.setDescription("FREE TIER");
         subs.setFreeTier(true);
-        subs.setEndDate(LocalDateTime.now().plusDays(freeTierDays));
+        subs.setEndAt(LocalDateTime.now().plusDays(freeTierDays));
         subs.setStatus(Subscription.Status.ACTIVE);
-        subs.setId("u_" + user.getId() + "_" + TokenGeneratorUtil.generate(20));
+        subs.setId("u" + user.getId() + "_" + TokenGeneratorUtil.generate(20));
         return subscriptionRepository.save(subs);
     }
 
