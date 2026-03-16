@@ -16,8 +16,8 @@ public record CustomerMenuResponse(
     public static CustomerMenuResponse from(UserEntity user, List<Schedule> schedules,
             List<ProductMenuProjection> projection) {
         EstablishmentInfoResponse info = new EstablishmentInfoResponse(user.getId(),
-                user.getEstablishmentName(), user.getInstagram(), user.getFacebook(),
-                user.getWebsite(), user.getWhatsapp(), user.getPhone(), user.getImage(),
+                user.getEstablishmentName(), user.getEstablishmentDescription(), user.getInstagram(),
+                user.getFacebook(), user.getWebsite(), user.getWhatsapp(), user.getPhone(), user.getImage(),
                 user.getAddressLine(), user.getCode(), user.getCity());
 
         List<ScheduleResponse> scheduleResponses = ScheduleResponse.from(schedules);
@@ -82,6 +82,7 @@ public record CustomerMenuResponse(
     public static record EstablishmentInfoResponse(
             Long id,
             String establishmentName,
+            String description,
             String instagram,
             String facebook,
             String website,

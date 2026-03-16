@@ -35,7 +35,7 @@ public class StripeWebhookController {
         String type = (String) body.get("type");
         // String stripeSignature = headers.getFirst("Stripe-Signature");
         log.info("webhook - event type:{}", type);
-        log.info("webhook - body:{}", body.get("data"));
+        log.info("webhook - body:{}", objectMapper.writeValueAsString(body.get("data")));
 
 
         // switch (type) {

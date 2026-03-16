@@ -43,6 +43,8 @@ public class UserEntity {
 
     private String establishmentUrl;
 
+    private String establishmentDescription;
+
     private String instagram;
 
     private String facebook;
