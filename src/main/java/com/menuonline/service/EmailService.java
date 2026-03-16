@@ -82,4 +82,7 @@ public class EmailService {
         }
     }
 
+    public void subscriptionCancel(String emailTo) throws Exception {
+    }
+
 }

@@ -20,7 +20,6 @@ import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
 @Entity
 @Table(name = "users")
@@ -29,7 +28,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @EntityListeners(AuditingEntityListener.class)
 public class UserEntity {
-    
+
     private static final int RECOVERY_TOKEN_EXPIRATION_TIME_IN_MINUTES = 5;
 
     @Id
@@ -58,6 +57,9 @@ public class UserEntity {
 
     @OneToMany(mappedBy = "user")
     private List<Schedule> schedules;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+    private List<Subscription> subscriptions = new ArrayList<>();
 
     private String image;
 
@@ -89,11 +91,11 @@ public class UserEntity {
             return true;
 
         return user.getResetPasswordTokenCreation()
-            .isBefore(LocalDateTime.now().minusMinutes(RECOVERY_TOKEN_EXPIRATION_TIME_IN_MINUTES));
+                .isBefore(LocalDateTime.now().minusMinutes(RECOVERY_TOKEN_EXPIRATION_TIME_IN_MINUTES));
     }
 
     public static boolean canUpdatePassword(UserEntity user, String token) {
-        if (user.getResetPasswordToken() == null || token == null) 
+        if (user.getResetPasswordToken() == null || token == null)
             return false;
 
         if (!user.getResetPasswordToken().equals(token))

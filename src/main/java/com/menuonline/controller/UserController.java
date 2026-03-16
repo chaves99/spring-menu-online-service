@@ -25,6 +25,7 @@ import com.menuonline.payloads.UpdatePasswordRequest;
 import com.menuonline.service.EmailService;
 import com.menuonline.service.MockMenuService;
 import com.menuonline.service.SimpleStorageBucketSerivce;
+import com.menuonline.service.SubscriptionService;
 import com.menuonline.service.ThymeleafTemplateService;
 import com.menuonline.service.UserService;
 
@@ -41,6 +42,7 @@ public class UserController {
     private final SimpleStorageBucketSerivce bucketSerivce;
     private final MockMenuService mockMenuService;
     private final EmailService emailService;
+    private final SubscriptionService subscriptionService;
     private final ThymeleafTemplateService thymeleafTemplateService;
 
     @PostMapping
@@ -48,6 +50,7 @@ public class UserController {
     public ResponseEntity<LoginUserResponse> create(@RequestBody CreateUserRequest request) {
         UserEntity userEntity = userService.create(request);
         mockMenuService.create(userEntity);
+        subscriptionService.createFreeTier(userEntity);
         TokenAccess login = userService.login(userEntity);
         return ResponseEntity.ok(LoginUserResponse.from(login));
     }
@@ -76,7 +79,7 @@ public class UserController {
 
     @PostMapping("/validate-token")
     public ResponseEntity<?> validateToken(@RequestBody Map<String, String> body) {
-        if(userService.validateRecoveryToken(body.get("email"), body.get("token"))) {
+        if (userService.validateRecoveryToken(body.get("email"), body.get("token"))) {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -84,7 +87,6 @@ public class UserController {
 
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest body) {
-        System.out.println("#### resetPassword body:" + body);
         userService.resetPassword(body);
         return ResponseEntity.ok().build();
     }

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.menuonline.entity.Schedule;
+import com.menuonline.entity.Subscription;
 import com.menuonline.entity.UserEntity;
 import com.menuonline.exceptions.ErrorHandlerResponse.ErrorMessages;
 import com.menuonline.exceptions.HttpServiceException;
@@ -37,6 +38,10 @@ public class MenuService {
                     .orElseThrow(() -> new HttpServiceException(ErrorMessages.ESTABLISHMENT_NOT_EXISTS,
                             HttpStatus.NOT_FOUND));
 
+            if (!isUserSubscriptionValid(info)) {
+                throw new HttpServiceException(null, HttpStatus.NOT_FOUND);
+            }
+
             List<Schedule> schedules = scheduleRepository.findByUserId(info.getId());
 
             List<ProductMenuProjection> productProjections = productRepository.findMenu(info.getId());
@@ -47,6 +52,19 @@ public class MenuService {
             log.error("get - Exception: ", e);
             return Optional.empty();
         }
+    }
+
+    private boolean isUserSubscriptionValid(UserEntity user) {
+        if (UserEntity.isFreeTierActive(user)) {
+            return true;
+        }
+
+        Optional<Subscription> current = Subscription.findCurrent(user.getSubscriptions());
+        if (current.isPresent() && current.get().getStatus().equals(Subscription.Status.ACTIVE)) {
+            return true;
+        }
+
+        return false;
     }
 
 }

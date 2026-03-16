@@ -1,19 +1,22 @@
 package com.menuonline.service;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.menuonline.exceptions.HttpServiceException;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Account;
 import com.stripe.model.Customer;
-import com.stripe.model.StripeCollection;
-import com.stripe.net.RequestOptions;
+import com.stripe.model.Subscription;
 import com.stripe.param.CustomerListParams;
-import com.stripe.param.InvoicePaymentListParams;
+import com.stripe.param.SubscriptionCancelParams;
 import com.stripe.param.SubscriptionListParams;
-import com.stripe.param.SubscriptionSearchParams;
-import com.stripe.param.SubscriptionUpdateParams;
+import com.stripe.service.V1Services;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,48 +24,103 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StripeService {
 
-    // @Value("${stripe.secretKey}")
-    // private String secretKey;
-
     private StripeClient client;
 
     public StripeService(@Value("${stripe.secretKey}") String secretKey) {
         client = new StripeClient(secretKey);
     }
 
-    public void test() {
+    public Optional<Customer> findCustomerByEmail(String email) {
+        CustomerListParams params = CustomerListParams.builder()
+                .setEmail(email)
+                .build();
+        V1Services v1 = client.v1();
         try {
-            client.v1().customers().list(CustomerListParams.builder().setEmail("test@mail.com").build())
-                .getData().forEach(customer -> {
-                    System.out.println("###### --> Customer: " + customer);
-                    // customer.getSubscriptions().getData().forEach(subs -> {
-                    //     System.out.println("##### --> subscription: " + subs);
-                    // });
-                });
-
-            client.v1().subscriptions().list(SubscriptionListParams.builder().setCustomer("cus_U2UvMjXAUv4PKj").build())
-                .getData().forEach(subs -> {
-                    subs.getItems().getData().forEach(items -> {
-                        items.getPlan().getActive();
-                    });
-                    System.out.println(subs);
-                });
-
-            client.v1().invoicePayments().list(InvoicePaymentListParams.builder().setInvoice("in_1T4QvKRsjQxNujCXwxUDZtVK").build())
-                .getData().forEach(inv -> System.out.println(inv));
+            List<Customer> data = v1.customers().list(params).getData();
+            log.info("findSubscriptionByEmail - email:{} number of customers:{}", email, data.size());
+            return data.stream().max(Comparator.comparingLong(c -> c.getCreated()));
         } catch (StripeException e) {
             e.printStackTrace();
+            return Optional.empty();
         }
     }
 
-    public void cancelSubscription() {
-        SubscriptionUpdateParams subscriptionUpdateParams = SubscriptionUpdateParams.builder()
-                .setCancelAtPeriodEnd(true).build();
-
+    /**
+     * @param email
+     * @return all subscriptions but canceled
+     */
+    public Optional<?> findSubscriptionByEmail(String email) {
         try {
-            client.v1().subscriptions().update("<SUBSCRIPTION_ID>?", subscriptionUpdateParams);
+            CustomerListParams params = CustomerListParams.builder()
+                    .setEmail(email)
+                    .build();
+            V1Services v1 = client.v1();
+            List<Customer> data = v1.customers().list(params).getData();
+            log.info("findSubscriptionByEmail - email:{} number of customers:{}", email, data.size());
+            Optional<Customer> customer = data.stream().max(Comparator.comparingLong(c -> c.getCreated()));
+            return customer.flatMap(c -> {
+                SubscriptionListParams subsParam = SubscriptionListParams.builder()
+                        .setCustomer(c.getId())
+                        .addExpand("data.default_payment_method")
+                        .addExpand("data.latest_invoice")
+                        .build();
+                try {
+                    List<Subscription> subscriptions = v1.subscriptions().list(subsParam).getData();
+                    subscriptions.forEach(s -> s.getDaysUntilDue());
+                    System.out.println("### subscription: " + subscriptions);
+                    return subscriptions.stream()
+                            .max(Comparator.comparingLong(s -> s.getCreated()));
+                } catch (StripeException e) {
+                    e.printStackTrace();
+                    log.warn("findSubscriptionByEmail - exception: {}", e.getMessage());
+                    return Optional.empty();
+                }
+            });
         } catch (StripeException e) {
             e.printStackTrace();
+            log.warn("findSubscriptionByEmail - exception: {}", e.getMessage());
+        }
+        return Optional.empty();
+    }
+
+    public Optional<?> findSubscriptionByCustomerId(String customerId) {
+        try {
+            Customer customer = client.v1().customers().retrieve(customerId);
+
+            List<Subscription> data = customer.getSubscriptions().getData();
+            log.info("findSubscriptionByCustomerId - customer:{} subscription size:{}",
+                    customerId, data.size());
+            return data.stream()
+                    .max(Comparator.comparingLong(s -> s.getCreated()));
+        } catch (StripeException e) {
+            log.warn("findSubscriptionByCustomerId - exception: {}", e.getMessage());
+            throw new HttpServiceException(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    public Optional<?> findSubscriptionById(String subscriptionId) {
+        try {
+            Subscription subscription = client.v1().subscriptions().retrieve(subscriptionId);
+            return Optional
+                    .ofNullable(subscription);
+        } catch (StripeException e) {
+            log.warn("findSubscriptionById - exception: {}", e.getMessage());
+            throw new HttpServiceException(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public String cancel(String subscriptionId) {
+        SubscriptionCancelParams params = SubscriptionCancelParams.builder()
+                .setProrate(true)
+                // .setCancellationDetails(CancellationDetails)
+                .build();
+        try {
+            Subscription cancel = client.v1().subscriptions().cancel(subscriptionId, params);
+            return cancel.getId();
+        } catch (StripeException e) {
+            log.warn("cancel - exception: {}", e.getMessage());
+            throw new HttpServiceException(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

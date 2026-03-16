@@ -31,8 +31,9 @@ public class MockMenuService {
 
     @Transactional
     public void create(UserEntity user) {
-        Category burgers = categoryRepository.save(getCategory(user, "Burguers"));
-        Category pizzas = categoryRepository.save(getCategory(user, "Pizzas"));
+        int catSeq = 0;
+        Category burgers = categoryRepository.save(getCategory(user, "Burguers", catSeq++));
+        Category pizzas = categoryRepository.save(getCategory(user, "Pizzas", catSeq++));
 
         String classicoDescription = """
                 Hambúrguer artesanal de 90gr, prensado na chapa, gerando uma crostinha surpreendente e deliciosa de sabor irresistível, pão de smash tostado na manteiga, queijo e 1 molho a escolha.
@@ -76,11 +77,12 @@ public class MockMenuService {
         return price;
     }
 
-    private Category getCategory(UserEntity user, String name) {
+    private Category getCategory(UserEntity user, String name, int sequence) {
         Category category = new Category();
         category.setEnabled(true);
         category.setName(name);
         category.setUser(user);
+        category.setSequence(sequence);
         category.setCreatedAt(LocalDateTime.now());
         category.setUpdatedAt(LocalDateTime.now());
         return category;

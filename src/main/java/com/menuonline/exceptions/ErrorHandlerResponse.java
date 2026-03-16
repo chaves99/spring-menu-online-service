@@ -1,5 +1,8 @@
 package com.menuonline.exceptions;
 
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,6 +21,12 @@ public class ErrorHandlerResponse {
 
     @ExceptionHandler({ Exception.class })
     public ResponseEntity<ErrorDetail> genericError(Exception except) {
+        List<String> stackTrace = Stream
+            .of(except.getStackTrace())
+            .map(ste -> ste.getClassName() + ":" + ste.getLineNumber() + "\n" )
+            .filter(className -> className.contains("menuonline"))
+            .toList();
+        log.warn("genericError - msg: {} getStackTrace:{}", except.getMessage(), stackTrace);
         return ResponseEntity.internalServerError().body(new ErrorDetail(ErrorMessages.INTERNAL_ERROR));
     }
 

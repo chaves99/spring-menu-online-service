@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS users(
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(100) NOT NULL,
     establishment_name VARCHAR(150) UNIQUE NOT NULL,
+    establishment_description VARCHAR(150), -- TODO it is not been used yet
     instagram VARCHAR,
     facebook VARCHAR,
     website VARCHAR,
@@ -16,6 +17,18 @@ CREATE TABLE IF NOT EXISTS users(
     reset_password_token_creation TIMESTAMP,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP
+);
+
+CREATE TABLE subscription (
+    id VARCHAR(250) PRIMARY KEY,
+    customer_id VARCHAR(200),
+    discription VARCHAR(150) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    free_tier BOOLEAN DEFAULT TRUE,
+    ended_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    user_id INTEGER NOT NULL REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS schedule(
