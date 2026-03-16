@@ -1,5 +1,6 @@
 package com.menuonline.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,12 +56,17 @@ public class MenuService {
     }
 
     private boolean isUserSubscriptionValid(UserEntity user) {
-        if (UserEntity.isFreeTierActive(user)) {
+        Optional<Subscription> current = Subscription.findCurrent(user.getSubscriptions());
+        if (current.isEmpty()) {
+            return false;
+        }
+        Subscription subs = current.get();
+
+        if (subs.getFreeTier() && subs.getEndDate().isAfter(LocalDateTime.now())) {
             return true;
         }
 
-        Optional<Subscription> current = Subscription.findCurrent(user.getSubscriptions());
-        if (current.isPresent() && current.get().getStatus().equals(Subscription.Status.ACTIVE)) {
+        if (!subs.getFreeTier() && subs.getStatus().equals(Subscription.Status.ACTIVE)) {
             return true;
         }
 
