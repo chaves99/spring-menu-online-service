@@ -89,6 +89,7 @@ public class SubscriptionService {
     }
 
     public void paymentFail(StripeWebhookInvoice invoice) {
+        log.info("paymentFail - invoice:{}", invoice);
         Optional<UserEntity> userOpt = userRepository.findByEmail(invoice.customerEmail());
 
         if (userOpt.isEmpty()) {
@@ -110,6 +111,7 @@ public class SubscriptionService {
     }
 
     public void cancelled(StripeWebhookSubscriptionCancelled subsCancelled) {
+        log.info("cancelled - subsCancelled:{}", subsCancelled);
         subscriptionRepository
                 .findByIdAndCustomerId(subsCancelled.id(), subsCancelled.customer())
                 .ifPresentOrElse(
