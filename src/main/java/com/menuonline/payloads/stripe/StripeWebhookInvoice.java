@@ -3,15 +3,16 @@ package com.menuonline.payloads.stripe;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.menuonline.utils.DateUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public record StripeWebhookInvoice(String id,
-        String customerEmail,
+        @JsonProperty("customer_email") String customerEmail,
         String customer,
-        String invoicePdf,
+        @JsonProperty("invoice_pdf") String invoicePdf,
         Lines lines) {
 
     public static record Lines(List<LineItem> data) {
