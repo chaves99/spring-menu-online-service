@@ -1,5 +1,7 @@
 package com.menuonline.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -32,10 +34,13 @@ public class SubscriptionController {
     private final EmailService emailService;
 
     @GetMapping
-    public ResponseEntity<SubscriptionResponse> get(HttpServletRequest request) {
+    public ResponseEntity<List<SubscriptionResponse>> get(HttpServletRequest request) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
-        Subscription current = subscriptionService.findCurrent(user);
-        return ResponseEntity.ok(SubscriptionResponse.from(current));
+        List<SubscriptionResponse> list = user.getSubscriptions().stream()
+                .filter(s -> s.getStatus().equals(Subscription.Status.ACTIVE))
+                .map(SubscriptionResponse::from)
+                .toList();
+        return ResponseEntity.ok(list);
     }
 
     @DeleteMapping("/{subscriptionId}")

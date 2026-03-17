@@ -96,7 +96,10 @@ public class UserController {
     public ResponseEntity<LoginUserResponse> get(HttpServletRequest request) {
         String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
         return userService.get(token)
-                .map(t -> ResponseEntity.ok(LoginUserResponse.from(t)))
+                .map(t ->  {
+                    subscriptionService.verifyUserFreeTier(t.getUser());
+                    return ResponseEntity.ok(LoginUserResponse.from(t));
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 

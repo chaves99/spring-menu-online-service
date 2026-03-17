@@ -152,4 +152,8 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public Optional<UserEntity> findByUrl(String url) {
+        return userRepository.findByEstablishmentUrl(url);
+    }
+
 }

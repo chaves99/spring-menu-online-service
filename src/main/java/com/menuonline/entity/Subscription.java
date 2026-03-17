@@ -1,7 +1,6 @@
 package com.menuonline.entity;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
@@ -13,6 +12,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -40,6 +41,7 @@ public class Subscription {
 
     private String description;
 
+    @Enumerated(EnumType.STRING)
     private Status status;
 
     private Boolean freeTier;
@@ -80,13 +82,13 @@ public class Subscription {
     }
 
     public static Optional<Subscription> findCurrent(List<Subscription> subs) {
-        if (subs == null) 
+        if (subs == null)
             return Optional.empty();
 
         if (subs.size() == 1)
             return Optional.ofNullable(subs.get(0));
 
-        return subs.stream().max(Comparator.comparing(Subscription::getCreatedAt));
+        return subs.stream().filter(s -> s.getStatus().equals(Status.ACTIVE)).findFirst();
     }
 
 }
