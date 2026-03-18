@@ -1,6 +1,7 @@
 package com.menuonline.entity;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.StringJoiner;
@@ -90,7 +91,12 @@ public class Subscription {
         if (subs.size() == 1)
             return Optional.ofNullable(subs.get(0));
 
-        return subs.stream().filter(s -> s.getStatus().equals(Status.ACTIVE)).findFirst();
+        Optional<Subscription> active = subs.stream().filter(s -> s.getStatus().equals(Status.ACTIVE)).findFirst();
+        if (active.isPresent()) {
+            return active;
+        }
+
+        return subs.stream().max(Comparator.comparing(Subscription::getCreatedAt));
     }
 
 }
