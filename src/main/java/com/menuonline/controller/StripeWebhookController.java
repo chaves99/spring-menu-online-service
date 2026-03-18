@@ -33,34 +33,40 @@ public class StripeWebhookController {
 
     @PostMapping
     public ResponseEntity<?> webhook(@RequestBody StripeWebhookEvent event, @RequestHeader HttpHeaders headers) {
-        String type = event.type();
-        String stripeSignature = headers.getFirst("Stripe-Signature");
-        log.info("webhook - event type:{} stripeSignature:{}", type, stripeSignature);
-        String dataJson = objectMapper.writeValueAsString(event.data().get("object"));
-        log.info("webhook - body:{}", dataJson);
+        try {
+            String type = event.type();
+            String stripeSignature = headers.getFirst("Stripe-Signature");
+            log.info("webhook - event type:{} stripeSignature:{}", type, stripeSignature);
+            String dataJson = objectMapper.writeValueAsString(event.data().get("object"));
+            log.info("webhook - body:{}", dataJson);
 
-        if (type.equals("customer.subscription.created")) {
-            StripeWebhookSubscriptionEvent created = objectMapper.readValue(dataJson,
-                    StripeWebhookSubscriptionEvent.class);
-            Optional<String> email = stripeService.findEmailByCustomer(created.customer());
-            if (email.isPresent()) {
-                subscriptionService.createSubscription(created, email.get());
-            } else {
-                log.warn("customer not found - customer:{}", created.customer());
-            }
+            if (type.equals("customer.subscription.created")) {
+                StripeWebhookSubscriptionEvent created = objectMapper.readValue(dataJson,
+                        StripeWebhookSubscriptionEvent.class);
+                Optional<String> email = stripeService.findEmailByCustomer(created.customer());
+                if (email.isPresent()) {
+                    subscriptionService.createSubscription(created, email.get());
+                } else {
+                    log.warn("customer not found - customer:{}", created.customer());
+                }
 
-        } else if (type.equals("customer.subscription.created")) {
-            StripeWebhookSubscriptionEvent canceled = objectMapper.readValue(dataJson,
-                    StripeWebhookSubscriptionEvent.class);
-            Optional<String> email = stripeService.findEmailByCustomer(canceled.customer());
-            if (email.isPresent()) {
-                subscriptionService.canceled(canceled);
+            } else if (type.equals("customer.subscription.deleted")) {
+                StripeWebhookSubscriptionEvent canceled = objectMapper.readValue(dataJson,
+                        StripeWebhookSubscriptionEvent.class);
+                Optional<String> email = stripeService.findEmailByCustomer(canceled.customer());
+                if (email.isPresent()) {
+                    subscriptionService.canceled(canceled);
+                } else {
+                    log.warn("customer not found - customer:{}", canceled.customer());
+                }
+            } else if (type.equals("invoice.payment_failed")) {
+                StripeWebhookInvoice paymentFailed = objectMapper.readValue(dataJson, StripeWebhookInvoice.class);
+                log.info("invoice payment fail - StripeWebhookInvoice:{}", paymentFailed);
             } else {
-                log.warn("customer not found - customer:{}", canceled.customer());
+                log.info("webhook - unhandle type:{} event:{}",  event.type(), event);
             }
-        } else if (type.equals("invoice.payment_failed")) {
-            StripeWebhookInvoice paymentFailed = objectMapper.readValue(dataJson, StripeWebhookInvoice.class);
-            log.info("invoice payment fail deserialized - StripeWebhookInvoice:{}", paymentFailed);
+        } catch (Exception e) {
+            log.error("webhook - exception:", e);
         }
         return ResponseEntity.ok().build();
     }
