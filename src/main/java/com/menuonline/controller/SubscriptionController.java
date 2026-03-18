@@ -37,7 +37,7 @@ public class SubscriptionController {
     public ResponseEntity<List<SubscriptionResponse>> get(HttpServletRequest request) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         List<SubscriptionResponse> list = user.getSubscriptions().stream()
-                .filter(s -> s.getStatus().equals(Subscription.Status.ACTIVE) || s.getFreeTier())
+                // .filter(s -> s.getStatus().equals(Subscription.Status.ACTIVE) || s.getFreeTier())
                 .map(SubscriptionResponse::from)
                 .toList();
         return ResponseEntity.ok(list);
