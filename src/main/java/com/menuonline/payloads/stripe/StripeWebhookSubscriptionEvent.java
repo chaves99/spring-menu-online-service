@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.menuonline.utils.DateUtils;
 
 import lombok.Getter;
@@ -12,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 public record StripeWebhookSubscriptionEvent(String id,
         String customer,
-        Long startDate,
+        @JsonProperty("start_date") Long startDate,
         Status status,
         SubscriptionItems items) {
 
@@ -41,9 +42,10 @@ public record StripeWebhookSubscriptionEvent(String id,
     public static record SubscriptionItems(List<SubscriptionItem> data) {
     }
 
-    public static record SubscriptionItem(LocalDateTime currentPeriodEnd, LocalDateTime currentPeriodStart) {
-
-        public SubscriptionItem(Long currentPeriodEnd, Long currentPeriodStart) {
+    public static record SubscriptionItem(LocalDateTime currentPeriodEnd,
+            LocalDateTime currentPeriodStart) {
+        public SubscriptionItem(@JsonProperty("current_period_end") Long currentPeriodEnd,
+                @JsonProperty("current_period_start") Long currentPeriodStart) {
             this(DateUtils.secondsToObject(currentPeriodEnd),
                     DateUtils.secondsToObject(currentPeriodStart));
         }

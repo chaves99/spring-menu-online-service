@@ -58,6 +58,7 @@ public class SubscriptionService {
     }
 
     public void createSubscription(StripeWebhookSubscriptionEvent event, String email) {
+        log.info("createSubscription - email:{} event:{}", email, event);
         Optional<UserEntity> userOpt = userRepository.findByEmail(email);
 
         if (userOpt.isEmpty()) {
@@ -75,6 +76,7 @@ public class SubscriptionService {
         newSubs.setEndAt(event.getCurrentPeriodEnd());
         newSubs.setFreeTier(false);
         newSubs.setStatus(SubscriptionStatusConverter.convert(event.status()));
+        log.info("createSubscription - new subscription:{}", newSubs);
         subscriptionRepository.save(newSubs);
     }
 
