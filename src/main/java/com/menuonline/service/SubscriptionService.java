@@ -57,27 +57,18 @@ public class SubscriptionService {
         });
     }
 
-    public void createSubscription(StripeWebhookSubscriptionEvent event, String email) {
-        log.info("createSubscription - email:{} event:{}", email, event);
-        Optional<UserEntity> userOpt = userRepository.findByEmail(email);
-
-        if (userOpt.isEmpty()) {
-            log.error("updateSubs - email not found - event:{}", event);
-            return;
-        }
-
-        // LocalDateTime periodStart = event.items().data().get(0).currentPeriodStart();
-
+    public void createSubscription(StripeWebhookSubscriptionEvent event, UserEntity user) {
         Subscription newSubs = new Subscription();
         newSubs.setId(event.id());
         newSubs.setCustomerId(event.customer());
         newSubs.setDescription("Plano Unico.");
-        newSubs.setUser(userOpt.get());
+        newSubs.setUser(user);
         newSubs.setEndAt(event.getCurrentPeriodEnd());
         newSubs.setFreeTier(false);
         newSubs.setStatus(SubscriptionStatusConverter.convert(event.status()));
         log.info("createSubscription - new subscription:{}", newSubs);
         subscriptionRepository.save(newSubs);
+        this.finishFreeTier(user);
     }
 
     public void paymentFail(StripeWebhookInvoice invoice) {
@@ -111,6 +102,17 @@ public class SubscriptionService {
                     subs.setEndAt(event.getCurrentPeriodEnd());
                     subscriptionRepository.save(subs);
                 }, () -> log.warn("subscription canceled not found: {}", event));
+    }
+
+    public void finishFreeTier(UserEntity user) {
+        LocalDateTime now = LocalDateTime.now();
+        for (var subs : user.getSubscriptions()) {
+            if (subs.getFreeTier() && subs.getEndAt().isBefore(now)) {
+                subs.setEndAt(now);
+                subs.setStatus(Subscription.Status.CANCELED);
+                subscriptionRepository.save(subs);
+            }
+        }
     }
 
 }

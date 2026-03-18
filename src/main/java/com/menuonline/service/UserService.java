@@ -32,6 +32,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final TokenAccessRepository tokenAccessRepository;
 
+    public Optional<UserEntity> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
     public UserEntity create(CreateUserRequest request) {
         validate(request);
         UserEntity user = new UserEntity();
