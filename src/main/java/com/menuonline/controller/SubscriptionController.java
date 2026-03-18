@@ -1,5 +1,7 @@
 package com.menuonline.controller;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -40,6 +42,7 @@ public class SubscriptionController {
                 // .filter(s -> s.getStatus().equals(Subscription.Status.ACTIVE) || s.getFreeTier())
                 .map(SubscriptionResponse::from)
                 .toList();
+        list.sort(Comparator.comparing(SubscriptionResponse::createdAt));
         return ResponseEntity.ok(list);
     }
 
