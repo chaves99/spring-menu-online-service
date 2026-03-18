@@ -9,9 +9,10 @@ import org.springframework.stereotype.Service;
 import com.menuonline.entity.Subscription;
 import com.menuonline.entity.UserEntity;
 import com.menuonline.payloads.stripe.StripeWebhookInvoice;
-import com.menuonline.payloads.stripe.StripeWebhookSubscriptionCancelled;
+import com.menuonline.payloads.stripe.StripeWebhookSubscriptionEvent;
 import com.menuonline.repository.SubscriptionRepository;
 import com.menuonline.repository.UserRepository;
+import com.menuonline.utils.SubscriptionStatusConverter;
 import com.menuonline.utils.TokenGeneratorUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,7 @@ public class SubscriptionService {
     }
 
     public Subscription cancel(UserEntity user, Subscription subscription) {
-        subscription.setStatus(Subscription.Status.CANCELLED);
+        subscription.setStatus(Subscription.Status.CANCELED);
         subscription.setEndAt(LocalDateTime.now());
         return subscriptionRepository.save(subscription);
     }
@@ -50,42 +51,31 @@ public class SubscriptionService {
         Optional<Subscription> first = user.getSubscriptions().stream().filter(s -> s.getFreeTier()).findFirst();
         first.ifPresent(subs -> {
             if (subs.getEndAt().isBefore(LocalDateTime.now())) {
-                subs.setStatus(Subscription.Status.CANCELLED);
+                subs.setStatus(Subscription.Status.CANCELED);
                 subscriptionRepository.save(subs);
             }
         });
     }
 
-    public void updateSubs(StripeWebhookInvoice invoice) {
-        log.info("updatesubs - invoice:{}", invoice);
-        Optional<UserEntity> userOpt = userRepository.findByEmail(invoice.customerEmail());
+    public void createSubscription(StripeWebhookSubscriptionEvent event, String email) {
+        Optional<UserEntity> userOpt = userRepository.findByEmail(email);
 
         if (userOpt.isEmpty()) {
-            log.error("updateSubs - email not found - invoice:{}", invoice);
+            log.error("updateSubs - email not found - event:{}", event);
             return;
         }
 
-        var user = userOpt.get();
-        Optional<Subscription> subscriptionOpt = user.getSubscriptions().stream()
-                .filter(s -> s.getId().equals(invoice.id())).findFirst();
+        // LocalDateTime periodStart = event.items().data().get(0).currentPeriodStart();
 
-        if (subscriptionOpt.isPresent()) {
-            Subscription subscription = subscriptionOpt.get();
-            subscription.setStatus(Subscription.Status.ACTIVE);
-            subscription.setEndAt(invoice.endDate());
-            subscriptionRepository.save(subscription);
-        } else {
-            Subscription newSubs = new Subscription();
-            newSubs.setId(invoice.id());
-            newSubs.setCustomerId(invoice.customer());
-            newSubs.setDescription("Plano Unico.");
-            newSubs.setUser(user);
-            newSubs.setEndAt(invoice.endDate());
-            newSubs.setFreeTier(false);
-            newSubs.setStatus(Subscription.Status.ACTIVE);
-            subscriptionRepository.save(newSubs);
-        }
-
+        Subscription newSubs = new Subscription();
+        newSubs.setId(event.id());
+        newSubs.setCustomerId(event.customer());
+        newSubs.setDescription("Plano Unico.");
+        newSubs.setUser(userOpt.get());
+        newSubs.setEndAt(event.getCurrentPeriodEnd());
+        newSubs.setFreeTier(false);
+        newSubs.setStatus(SubscriptionStatusConverter.convert(event.status()));
+        subscriptionRepository.save(newSubs);
     }
 
     public void paymentFail(StripeWebhookInvoice invoice) {
@@ -102,7 +92,7 @@ public class SubscriptionService {
                 .filter(s -> s.getId().equals(invoice.id())).findFirst();
 
         subscription.ifPresentOrElse(subs -> {
-            subs.setStatus(Subscription.Status.PAYMENT_FAILED);
+            subs.setStatus(Subscription.Status.UNPAID);
         }, () -> {
             log.error("paymentFail - subscription not found - invoice:{}", invoice);
             return;
@@ -110,17 +100,15 @@ public class SubscriptionService {
 
     }
 
-    public void cancelled(StripeWebhookSubscriptionCancelled subsCancelled) {
-        log.info("cancelled - subsCancelled:{}", subsCancelled);
+    public void canceled(StripeWebhookSubscriptionEvent event) {
+        log.info("canceled - event:{}", event);
         subscriptionRepository
-                .findByIdAndCustomerId(subsCancelled.id(), subsCancelled.customer())
-                .ifPresentOrElse(
-                        subs -> {
-                            subs.setStatus(Subscription.Status.CANCELLED);
-                            subs.setEndAt(subsCancelled.endedAt());
-                            subscriptionRepository.save(subs);
-                        },
-                        () -> log.warn("subscription cancelled not found: {}", subsCancelled));
+                .findByIdAndCustomerId(event.id(), event.customer())
+                .ifPresentOrElse(subs -> {
+                    subs.setStatus(Subscription.Status.CANCELED);
+                    subs.setEndAt(event.getCurrentPeriodEnd());
+                    subscriptionRepository.save(subs);
+                }, () -> log.warn("subscription canceled not found: {}", event));
     }
 
 }

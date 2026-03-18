@@ -23,15 +23,8 @@ public class MenuOnlineApplication {
     @Bean
     public CommandLineRunner runner(StripeService stripeService) {
         return a -> {
-            // stripeService.test();
+            // stripeService.entitlement();
         };
     }
 
-    // @Bean
-    // public CommandLineRunner runner(SimpleStorageBucketSerivce service) {
-    //     return a -> {
-    //         System.out.println("##### -> object: " + service.getObjectOnBucket());
-    //         System.out.println("##### -> buckets: " + service.getAllBuckets());
-    //     };
-    // }
 }

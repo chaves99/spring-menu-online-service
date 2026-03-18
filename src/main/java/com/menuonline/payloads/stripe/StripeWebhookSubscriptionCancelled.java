@@ -7,7 +7,7 @@ import com.menuonline.utils.DateUtils;
 
 public record StripeWebhookSubscriptionCancelled(String id, String customer, LocalDateTime endedAt) {
 
-    public StripeWebhookSubscriptionCancelled(String id, String customer, @JsonProperty("ended_at")  Long endedAt) {
+    public StripeWebhookSubscriptionCancelled(String id, String customer, @JsonProperty("ended_at") Long endedAt) {
         this(id, customer, DateUtils.secondsToObject(endedAt));
     }
 

@@ -1,6 +1,7 @@
 package com.menuonline.controller;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.menuonline.payloads.stripe.StripeWebhookInvoice;
-import com.menuonline.payloads.stripe.StripeWebhookSubscriptionCancelled;
+import com.menuonline.payloads.stripe.StripeWebhookSubscriptionEvent;
 import com.menuonline.service.StripeService;
 import com.menuonline.service.SubscriptionService;
 
@@ -33,37 +34,40 @@ public class StripeWebhookController {
     private final StripeService stripeService;
 
     @PostMapping
-    public ResponseEntity<?> webhook(@RequestBody Map<String, Object> body, @RequestHeader HttpHeaders headers) {
-        String type = (String) body.get("type");
-        // String stripeSignature = headers.getFirst("Stripe-Signature");
-        log.info("webhook - event type:{}", type);
-        String dataJson = objectMapper.writeValueAsString(body.get("data"));
+    public ResponseEntity<?> webhook(@RequestBody StripeWebhookEvent event, @RequestHeader HttpHeaders headers) {
+        String type = event.type();
+        String stripeSignature = headers.getFirst("Stripe-Signature");
+        log.info("webhook - event type:{} stripeSignature:{}", type, stripeSignature);
+        String dataJson = objectMapper.writeValueAsString(event.data().get("object"));
         log.info("webhook - body:{}", dataJson);
 
-        switch (type) {
-            case "invoice.paid":
-                StripeWebhookInvoice invoicePaid = objectMapper.readValue(dataJson, StripeWebhookInvoice.class);
-                subscriptionService.updateSubs(invoicePaid);
-                break;
-            case "invoice.payment_failed":
-                StripeWebhookInvoice paymentFailed = objectMapper.readValue(dataJson, StripeWebhookInvoice.class);
-                subscriptionService.paymentFail(paymentFailed);
+        if (type.equals("customer.subscription.created")) {
+            StripeWebhookSubscriptionEvent created = objectMapper.readValue(dataJson,
+                    StripeWebhookSubscriptionEvent.class);
+            Optional<String> email = stripeService.findEmailByCustomer(created.customer());
+            if (email.isPresent()) {
+                subscriptionService.createSubscription(created, email.get());
+            } else {
+                log.warn("customer not found - customer:{}", created.customer());
+            }
 
-                break;
-            case "customer.subscription.deleted":
-                StripeWebhookSubscriptionCancelled subsCancelled = objectMapper.readValue(dataJson, StripeWebhookSubscriptionCancelled.class);
-                subscriptionService.cancelled(subsCancelled);
-                break;
+        } else if (type.equals("customer.subscription.created")) {
+            StripeWebhookSubscriptionEvent canceled = objectMapper.readValue(dataJson,
+                    StripeWebhookSubscriptionEvent.class);
+            Optional<String> email = stripeService.findEmailByCustomer(canceled.customer());
+            if (email.isPresent()) {
+                subscriptionService.canceled(canceled);
+            } else {
+                log.warn("customer not found - customer:{}", canceled.customer());
+            }
+        } else if (type.equals("invoice.payment_failed")) {
+            StripeWebhookInvoice paymentFailed = objectMapper.readValue(dataJson, StripeWebhookInvoice.class);
+            log.info("invoice payment fail deserialized - StripeWebhookInvoice:{}", paymentFailed);
         }
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/simulate/{email}")
-    public ResponseEntity<?> webhook(@PathVariable String email) {
-        return ResponseEntity.ok().build();
-    }
-
-    public static record StripeWebhookSubscriptionInfo(String id) {
+    public static record StripeWebhookEvent(String id, Map<String, Object> data, String type) {
     }
 
 }

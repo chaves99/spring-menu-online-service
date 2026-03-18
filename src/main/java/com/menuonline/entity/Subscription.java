@@ -9,6 +9,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.menuonline.payloads.stripe.StripeWebhookSubscriptionEvent;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -77,8 +79,8 @@ public class Subscription {
 
     public enum Status {
         ACTIVE,
-        PAYMENT_FAILED,
-        CANCELLED;
+        UNPAID,
+        CANCELED;
     }
 
     public static Optional<Subscription> findCurrent(List<Subscription> subs) {

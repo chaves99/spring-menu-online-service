@@ -40,7 +40,20 @@ public class StripeService {
             log.info("findSubscriptionByEmail - email:{} number of customers:{}", email, data.size());
             return data.stream().max(Comparator.comparingLong(c -> c.getCreated()));
         } catch (StripeException e) {
-            e.printStackTrace();
+            log.warn("findCustomerByEmail - email:{} exception:{}", email, e.getLocalizedMessage());
+            return Optional.empty();
+        }
+    }
+
+    public Optional<String> findEmailByCustomer(String customer) {
+        try {
+            Customer customerObject = client.v1().customers().retrieve(customer);
+            if (customerObject == null)
+                return Optional.empty();
+
+            return Optional.of(customerObject.getEmail());
+        } catch (StripeException e) {
+            log.warn("findEmailByCustomer - customer:{} exception:{}", customer, e.getLocalizedMessage());
             return Optional.empty();
         }
     }
@@ -77,8 +90,7 @@ public class StripeService {
                 }
             });
         } catch (StripeException e) {
-            e.printStackTrace();
-            log.warn("findSubscriptionByEmail - exception: {}", e.getMessage());
+            log.warn("findSubscriptionByEmail - email:{} exception: {}", email, e.getLocalizedMessage());
         }
         return Optional.empty();
     }
@@ -94,17 +106,6 @@ public class StripeService {
                     .max(Comparator.comparingLong(s -> s.getCreated()));
         } catch (StripeException e) {
             log.warn("findSubscriptionByCustomerId - exception: {}", e.getMessage());
-            throw new HttpServiceException(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-    public Optional<?> findSubscriptionById(String subscriptionId) {
-        try {
-            Subscription subscription = client.v1().subscriptions().retrieve(subscriptionId);
-            return Optional
-                    .ofNullable(subscription);
-        } catch (StripeException e) {
-            log.warn("findSubscriptionById - exception: {}", e.getMessage());
             throw new HttpServiceException(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

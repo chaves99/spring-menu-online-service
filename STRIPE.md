@@ -5,9 +5,9 @@
 ### Events we monitor
 > source: [Provision and monitor subscriptions](https://docs.stripe.com/billing/subscriptions/build-subscriptions?payment-ui=checkout&lang=java#provision-and-monitor)
 
-- invoice.paid: continue the subscription succesfully(store the subscription.id and customer.id)
-- invoice.payment_failed: Sent each billing period if there’s an issue with your customer’s payment method.
-- checkout.session.completed: Sent when a customer successfully completes the Checkout Session, informing you of a new purchase.
+- customer.subscription.created -> when a new subscription occurs
+- customer.subscription.deleted -> when a user cancel a subscription
+- test how api(subscription) act when payment fail: what events are sent?
 
 ### Flow
 > when a event come we only get the email and stripe customer id to update the subscription
