@@ -10,8 +10,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import com.menuonline.payloads.stripe.StripeWebhookSubscriptionEvent;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -84,19 +82,28 @@ public class Subscription {
         CANCELED;
     }
 
-    public static Optional<Subscription> findCurrent(List<Subscription> subs) {
-        if (subs == null)
-            return Optional.empty();
-
+    /**
+     * the method always will return a subs
+     * because all user MUST have a subs even
+     * that it is a free tier subs
+     */
+    public static Subscription findCurrent(List<Subscription> subs) {
         if (subs.size() == 1)
-            return Optional.ofNullable(subs.get(0));
+            return subs.get(0);
 
-        Optional<Subscription> active = subs.stream().filter(s -> s.getStatus().equals(Status.ACTIVE)).findFirst();
+        Optional<Subscription> active = subs.stream()
+            .filter(Subscription::isActive)
+            .findFirst();
         if (active.isPresent()) {
-            return active;
+            return active.get();
         }
 
-        return subs.stream().max(Comparator.comparing(Subscription::getCreatedAt));
+        return subs.stream().max(Comparator.comparing(Subscription::getCreatedAt)).get();
+    }
+
+    public static boolean isActive(Subscription subscription) {
+        return subscription.getStatus().equals(Status.ACTIVE)
+            || subscription.getStatus().equals(Status.UNPAID);
     }
 
 }

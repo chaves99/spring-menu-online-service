@@ -26,7 +26,7 @@ public class ErrorHandlerResponse {
             .map(ste -> ste.getClassName() + ":" + ste.getLineNumber() + "\n" )
             .filter(className -> className.contains("menuonline"))
             .toList();
-        log.warn("genericError - msg: {} getStackTrace:{}", except.getLocalizedMessage(), stackTrace);
+        log.warn("genericError - msg: {} getStackTrace:{} exception:{}", except.getLocalizedMessage(), stackTrace, except);
         return ResponseEntity.internalServerError().body(new ErrorDetail(ErrorMessages.INTERNAL_ERROR));
     }
 

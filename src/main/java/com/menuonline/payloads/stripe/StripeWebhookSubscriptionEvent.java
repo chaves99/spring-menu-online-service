@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 public record StripeWebhookSubscriptionEvent(String id,
         String customer,
         @JsonProperty("start_date") Long startDate,
+        @JsonProperty("ended_at") Long endedAt,
         Status status,
         SubscriptionItems items) {
 

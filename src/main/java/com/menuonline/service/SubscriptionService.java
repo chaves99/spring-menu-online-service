@@ -1,6 +1,8 @@
 package com.menuonline.service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -8,10 +10,13 @@ import org.springframework.stereotype.Service;
 
 import com.menuonline.entity.Subscription;
 import com.menuonline.entity.UserEntity;
+import com.menuonline.payloads.SubscriptionResponse;
+import com.menuonline.payloads.SubscriptionResponse.SubscriptionResponseItem;
 import com.menuonline.payloads.stripe.StripeWebhookInvoice;
 import com.menuonline.payloads.stripe.StripeWebhookSubscriptionEvent;
 import com.menuonline.repository.SubscriptionRepository;
 import com.menuonline.repository.UserRepository;
+import com.menuonline.utils.DateUtils;
 import com.menuonline.utils.SubscriptionStatusConverter;
 import com.menuonline.utils.TokenGeneratorUtil;
 
@@ -99,7 +104,7 @@ public class SubscriptionService {
                 .findByIdAndCustomerId(event.id(), event.customer())
                 .ifPresentOrElse(subs -> {
                     subs.setStatus(Subscription.Status.CANCELED);
-                    subs.setEndAt(event.getCurrentPeriodEnd());
+                    subs.setEndAt(DateUtils.secondsToObject(event.endedAt()));
                     subscriptionRepository.save(subs);
                 }, () -> log.warn("subscription canceled not found: {}", event));
     }
@@ -113,6 +118,23 @@ public class SubscriptionService {
                 subscriptionRepository.save(subs);
             }
         }
+    }
+
+    public SubscriptionResponse findByUser(UserEntity user) {
+        List<Subscription> subscriptions = subscriptionRepository.findByUserId(user.getId());
+
+        List<SubscriptionResponseItem> history = subscriptions.stream()
+                .filter(s -> !Subscription.isActive(s))
+                .map(SubscriptionResponse::toSubscriptionItem)
+                .sorted(Comparator.comparing(SubscriptionResponseItem::createdAt).reversed())
+                .toList();
+
+        Subscription current = Subscription.findCurrent(subscriptions);
+
+        if (Subscription.isActive(current)) {
+            return new SubscriptionResponse(SubscriptionResponse.toSubscriptionItem(current), history);
+        }
+        return new SubscriptionResponse(null, history);
     }
 
 }

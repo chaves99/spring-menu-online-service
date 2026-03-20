@@ -1,21 +1,27 @@
 package com.menuonline.payloads;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.menuonline.entity.Subscription;
 
-public record SubscriptionResponse(String id, Boolean freeTier,
-        String description,
-        Subscription.Status status,
-        LocalDateTime endDate,
-        LocalDateTime createdAt){
+public record SubscriptionResponse(SubscriptionResponseItem active,
+        List<SubscriptionResponseItem> history) {
 
-    public static SubscriptionResponse from(Subscription subs) {
-        return new SubscriptionResponse(subs.getId(),
+    public static SubscriptionResponseItem toSubscriptionItem(Subscription subs) {
+        return new SubscriptionResponseItem(subs.getId(),
                 subs.getFreeTier(),
                 subs.getDescription(),
                 subs.getStatus(),
                 subs.getEndAt(),
                 subs.getCreatedAt());
+    }
+
+    public static record SubscriptionResponseItem(String id,
+            boolean freeTier,
+            String description,
+            Subscription.Status status,
+            LocalDateTime endDate,
+            LocalDateTime createdAt) {
     }
 }

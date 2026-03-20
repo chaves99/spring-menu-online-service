@@ -2,12 +2,9 @@ package com.menuonline.payloads;
 
 import java.time.LocalDateTime;
 
-import org.springframework.http.HttpStatus;
-
 import com.menuonline.entity.Subscription;
 import com.menuonline.entity.TokenAccess;
 import com.menuonline.entity.UserEntity;
-import com.menuonline.exceptions.HttpServiceException;
 
 import lombok.Builder;
 
@@ -26,8 +23,7 @@ public record LoginUserResponse(
     public static LoginUserResponse from(TokenAccess token) {
         UserEntity user = token.getUser();
         Subscription subs = Subscription
-                .findCurrent(user.getSubscriptions())
-                .orElseThrow(() -> new HttpServiceException(null, HttpStatus.INTERNAL_SERVER_ERROR));
+                .findCurrent(user.getSubscriptions());
         return new LoginUserResponse(token.getToken(),
                 user.getEmail(),
                 user.getEstablishmentName(),
@@ -41,8 +37,7 @@ public record LoginUserResponse(
 
     public static LoginUserResponse from(UserEntity user, String token, String imageUrl) {
         Subscription subs = Subscription
-                .findCurrent(user.getSubscriptions())
-                .orElseThrow(() -> new HttpServiceException(null, HttpStatus.INTERNAL_SERVER_ERROR));
+                .findCurrent(user.getSubscriptions());
         return new LoginUserResponse(token,
                 user.getEmail(),
                 user.getEstablishmentName(),

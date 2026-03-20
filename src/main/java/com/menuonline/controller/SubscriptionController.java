@@ -1,9 +1,5 @@
 package com.menuonline.controller;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -36,14 +32,10 @@ public class SubscriptionController {
     private final EmailService emailService;
 
     @GetMapping
-    public ResponseEntity<List<SubscriptionResponse>> get(HttpServletRequest request) {
+    public ResponseEntity<SubscriptionResponse> get(HttpServletRequest request) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
-        List<SubscriptionResponse> list = user.getSubscriptions().stream()
-                // .filter(s -> s.getStatus().equals(Subscription.Status.ACTIVE) || s.getFreeTier())
-                .map(SubscriptionResponse::from)
-                .toList();
-        list.sort(Comparator.comparing(SubscriptionResponse::createdAt));
-        return ResponseEntity.ok(list);
+        SubscriptionResponse subsResponse = subscriptionService.findByUser(user);
+        return ResponseEntity.ok(subsResponse);
     }
 
     @DeleteMapping("/{subscriptionId}")
@@ -54,14 +46,14 @@ public class SubscriptionController {
                 .findFirst().orElseThrow(() -> new HttpServiceException(null, HttpStatus.UNAUTHORIZED));
 
         stripeService.cancel(subscription.getId());
-        Subscription cancel = subscriptionService.cancel(user, subscription);
+        subscriptionService.cancel(user, subscription);
         try {
             emailService.subscriptionCancel(user.getEmail());
         } catch (Exception e) {
             log.warn("cancel - error on sending email:{} exception:{} ",
                     user.getEmail(), e.getMessage());
         }
-        return ResponseEntity.ok(cancel);
+        return ResponseEntity.ok(subscriptionService.findByUser(user));
     }
 
 }

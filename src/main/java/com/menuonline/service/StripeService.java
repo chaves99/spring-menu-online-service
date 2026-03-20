@@ -13,9 +13,12 @@ import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Subscription;
+import com.stripe.model.PaymentLink.SubscriptionData;
+import com.stripe.model.checkout.Session;
 import com.stripe.param.CustomerListParams;
 import com.stripe.param.SubscriptionCancelParams;
 import com.stripe.param.SubscriptionListParams;
+import com.stripe.param.checkout.SessionCreateParams;
 import com.stripe.service.V1Services;
 
 import lombok.extern.slf4j.Slf4j;
@@ -109,6 +112,37 @@ public class StripeService {
             throw new HttpServiceException(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    public void generateChangePaymentMethodUrl(String customer, String subscription) {
+        System.out.println("### updatePaymentMethodLink ");
+
+        try {
+            V1Services v1 = client.v1();
+
+            SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
+                    .setCustomer(customer)
+                    .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                    .setSetupIntentData(SessionCreateParams.SetupIntentData.builder()
+                            .putMetadata("customer_id", customer)
+                            .putMetadata("subscription_id", subscription)
+                            .build())
+                    .setMode(SessionCreateParams.Mode.SETUP)
+                    .setSuccessUrl("https://itimenu.app")
+                    .build();
+            Session session;
+            session = v1.checkout().sessions().create(sessionCreateParams);
+            System.out.println(session);
+        } catch (StripeException e) {
+            e.printStackTrace();
+        }
+    }
+    // public void updatePaymentMethodLink(String customer) throws StripeException {
+    //     System.out.println("### updatePaymentMethodLink ");
+    //     SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
+    //         .setCustomer(customer).build();
+    //     Session session = client.v1().billingPortal().sessions().create(sessionCreateParams);
+    //     System.out.println(session);
+    // }
 
     public String cancel(String subscriptionId) {
         SubscriptionCancelParams params = SubscriptionCancelParams.builder()

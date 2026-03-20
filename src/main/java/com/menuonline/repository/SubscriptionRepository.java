@@ -1,5 +1,6 @@
 package com.menuonline.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,4 +25,6 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Stri
     Optional<Subscription> findByIdAndCustomerId(String id, String customerId);
 
     Optional<Subscription> findByIdAndUserId(Long id, Long userId);
+
+    List<Subscription> findByUserId(Long userId);
 }
