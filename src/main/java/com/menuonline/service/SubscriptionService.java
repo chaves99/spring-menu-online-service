@@ -137,4 +137,8 @@ public class SubscriptionService {
         return new SubscriptionResponse(null, history);
     }
 
+    public Optional<Subscription> findSubscription(String subscriptionId, Long userId) {
+        return subscriptionRepository.findByIdAndUserId(subscriptionId, userId);
+    }
+
 }

@@ -13,7 +13,6 @@ import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Subscription;
-import com.stripe.model.PaymentLink.SubscriptionData;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.CustomerListParams;
 import com.stripe.param.SubscriptionCancelParams;
@@ -27,9 +26,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StripeService {
 
-    private StripeClient client;
+    private final StripeClient client;
 
-    public StripeService(@Value("${stripe.secretKey}") String secretKey) {
+    private final String planMonthly;
+
+    public StripeService(@Value("${stripe.secretKey}") String secretKey,
+            @Value("${stripe.plans.monthly-simple}") String planMonthly) {
+        this.planMonthly = planMonthly;
         client = new StripeClient(secretKey);
     }
 
@@ -113,9 +116,8 @@ public class StripeService {
         }
     }
 
-    public void generateChangePaymentMethodUrl(String customer, String subscription) {
-        System.out.println("### updatePaymentMethodLink ");
-
+    public Optional<String> generateChangePaymentMethodUrl(String customer, String subscription) {
+        log.info("generateChangePaymentMethodUrl - customer:{} subscription:{}", customer, subscription);
         try {
             V1Services v1 = client.v1();
 
@@ -131,18 +133,13 @@ public class StripeService {
                     .build();
             Session session;
             session = v1.checkout().sessions().create(sessionCreateParams);
-            System.out.println(session);
+            return Optional.of(session.getUrl());
         } catch (StripeException e) {
-            e.printStackTrace();
+            log.warn("generateChangePaymentMethodUrl - customer:{} subscription:{} exception: {}",
+                    customer, subscription, e);
+            return Optional.empty();
         }
     }
-    // public void updatePaymentMethodLink(String customer) throws StripeException {
-    //     System.out.println("### updatePaymentMethodLink ");
-    //     SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
-    //         .setCustomer(customer).build();
-    //     Session session = client.v1().billingPortal().sessions().create(sessionCreateParams);
-    //     System.out.println(session);
-    // }
 
     public String cancel(String subscriptionId) {
         SubscriptionCancelParams params = SubscriptionCancelParams.builder()
@@ -155,6 +152,31 @@ public class StripeService {
         } catch (StripeException e) {
             log.warn("cancel - exception: {}", e.getMessage());
             throw new HttpServiceException(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public Optional<String> generateNewPlanUrl(String email) {
+        try {
+            SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
+                    .setSuccessUrl("https://itimenu.app/admin/subscription")
+                    .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
+                    .setCustomerEmail(email)
+                    .setLocale(SessionCreateParams.Locale.PT_BR)
+                    .setBrandingSettings(SessionCreateParams.BrandingSettings
+                            .builder()
+                            .setFontFamily(SessionCreateParams.BrandingSettings.FontFamily.ROBOTO)
+                            .build())
+                    .addLineItem(SessionCreateParams.LineItem.builder()
+                            .setQuantity(1l)
+                            .setPrice(planMonthly)
+                            .build())
+                    .build();
+            Session session = client.v1().checkout().sessions().create(sessionCreateParams);
+            System.out.println(session);
+            return Optional.ofNullable(session).map(Session::getUrl);
+        } catch (StripeException e) {
+            log.warn("generateNewPlanUrl - exception: {}", e.getMessage());
+            return Optional.empty();
         }
     }
 

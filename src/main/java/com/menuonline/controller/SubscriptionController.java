@@ -56,4 +56,25 @@ public class SubscriptionController {
         return ResponseEntity.ok(subscriptionService.findByUser(user));
     }
 
+    @GetMapping("/update-payment-method/{subscriptionId}")
+    public ResponseEntity<String> getPaymentMethodChangeUrl(HttpServletRequest request,
+            @PathVariable String subscriptionId) {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        return subscriptionService
+                .findSubscription(subscriptionId, user.getId())
+                .flatMap(subs -> {
+                    return stripeService.generateChangePaymentMethodUrl(subs.getCustomerId(), subs.getId());
+                })
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/new-plan")
+    public ResponseEntity<String> getNewPlanUrl(HttpServletRequest request) {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        return stripeService.generateNewPlanUrl(user.getEmail())
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.internalServerError().build());
+    }
+
 }
