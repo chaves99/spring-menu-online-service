@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.menuonline.config.AuthFilter;
-import com.menuonline.entity.Subscription;
 import com.menuonline.entity.TokenAccess;
 import com.menuonline.entity.UserEntity;
 import com.menuonline.payloads.CreateUserRequest;
@@ -110,6 +110,16 @@ public class UserController {
         String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
         String imageUrl = bucketSerivce.uploadEstablishment(user, file);
         return ResponseEntity.ok(LoginUserResponse.from(user, token, imageUrl));
+    }
+
+    @PutMapping("/description")
+    public ResponseEntity<LoginUserResponse> updateDescription(HttpServletRequest request,
+            @RequestBody Map<String, String> body) {
+            UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+            String description = body.get("description");
+            String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
+            user = userService.updateDescription(user, description);
+            return ResponseEntity.ok(LoginUserResponse.from(user, token));
     }
 
 }

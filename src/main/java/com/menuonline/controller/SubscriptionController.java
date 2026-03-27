@@ -38,6 +38,16 @@ public class SubscriptionController {
         return ResponseEntity.ok(subsResponse);
     }
 
+    @GetMapping("/{subscriptionId}/details")
+    public ResponseEntity<?> getDetails(HttpServletRequest request, @PathVariable String subscriptionId) {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        return subscriptionService
+                .findSubscription(subscriptionId, user.getId())
+                .flatMap(subscription -> stripeService.findDetails(subscription.getId()))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @DeleteMapping("/{subscriptionId}")
     public ResponseEntity<?> cancel(HttpServletRequest request, @PathVariable String subscriptionId) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
@@ -73,8 +83,8 @@ public class SubscriptionController {
     public ResponseEntity<String> getNewPlanUrl(HttpServletRequest request) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         return stripeService.generateNewPlanUrl(user.getEmail())
-            .map(ResponseEntity::ok)
-            .orElse(ResponseEntity.internalServerError().build());
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.internalServerError().build());
     }
 
 }

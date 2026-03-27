@@ -160,4 +160,9 @@ public class UserService {
         return userRepository.findByEstablishmentUrl(url);
     }
 
+    public UserEntity updateDescription(UserEntity user, String description) {
+        user.setEstablishmentDescription(description);
+        return userRepository.save(user);
+    }
+
 }

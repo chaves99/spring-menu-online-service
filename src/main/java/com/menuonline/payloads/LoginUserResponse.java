@@ -14,6 +14,7 @@ public record LoginUserResponse(
         String email,
         String establishmentName,
         String establishmentUrl,
+        String establishmentDescription,
         String image,
         String subscription,
         String subscriptionStatus,
@@ -28,6 +29,22 @@ public record LoginUserResponse(
                 user.getEmail(),
                 user.getEstablishmentName(),
                 user.getEstablishmentUrl(),
+                user.getEstablishmentDescription(),
+                user.getImage(),
+                subs.getDescription(),
+                subs.getStatus().toString(),
+                user.getCreatedAt(),
+                user.getUpdatedAt());
+    }
+    
+    public static LoginUserResponse from(UserEntity user, String token) {
+        Subscription subs = Subscription
+                .findCurrent(user.getSubscriptions());
+        return new LoginUserResponse(token,
+                user.getEmail(),
+                user.getEstablishmentName(),
+                user.getEstablishmentUrl(),
+                user.getEstablishmentDescription(),
                 user.getImage(),
                 subs.getDescription(),
                 subs.getStatus().toString(),
@@ -42,6 +59,7 @@ public record LoginUserResponse(
                 user.getEmail(),
                 user.getEstablishmentName(),
                 user.getEstablishmentUrl(),
+                user.getEstablishmentDescription(),
                 imageUrl,
                 subs.getDescription(),
                 subs.getStatus().toString(),

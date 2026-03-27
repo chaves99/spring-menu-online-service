@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.menuonline.exceptions.HttpServiceException;
+import com.menuonline.payloads.SubscriptionDetailResponse;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
@@ -17,6 +18,7 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.CustomerListParams;
 import com.stripe.param.SubscriptionCancelParams;
 import com.stripe.param.SubscriptionListParams;
+import com.stripe.param.SubscriptionRetrieveParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.stripe.service.V1Services;
 
@@ -156,6 +158,7 @@ public class StripeService {
     }
 
     public Optional<String> generateNewPlanUrl(String email) {
+        log.info("generateNewPlanUrl - email:{} plan:{}", email, planMonthly);
         try {
             SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
                     .setSuccessUrl("https://itimenu.app/admin/subscription")
@@ -178,6 +181,18 @@ public class StripeService {
             log.warn("generateNewPlanUrl - exception: {}", e.getMessage());
             return Optional.empty();
         }
+    }
+
+    public Optional<SubscriptionDetailResponse> findDetails(String subscriptionId) {
+        try {
+            SubscriptionRetrieveParams params = SubscriptionRetrieveParams.builder()
+                    .addExpand("default_payment_method").build();
+            Subscription subscription = client.v1().subscriptions().retrieve(subscriptionId, params);
+            return Optional.ofNullable(SubscriptionDetailResponse.from(subscription));
+        } catch (StripeException e) {
+            log.warn("findDetails - exception: {}", e.getMessage());
+        }
+        return Optional.empty();
     }
 
 }
