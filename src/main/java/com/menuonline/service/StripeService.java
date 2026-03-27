@@ -158,7 +158,7 @@ public class StripeService {
     }
 
     public Optional<String> generateNewPlanUrl(String email) {
-        log.info("generateNewPlanUrl - email:{} plan:{}", email, planMonthly);
+        log.info("generateNewPlanUrl - email:{}");
         try {
             SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
                     .setSuccessUrl("https://itimenu.app/admin/subscription")
@@ -175,7 +175,6 @@ public class StripeService {
                             .build())
                     .build();
             Session session = client.v1().checkout().sessions().create(sessionCreateParams);
-            System.out.println(session);
             return Optional.ofNullable(session).map(Session::getUrl);
         } catch (StripeException e) {
             log.warn("generateNewPlanUrl - exception: {}", e.getMessage());

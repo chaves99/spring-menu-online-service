@@ -39,7 +39,7 @@ public class AuthFilter extends OncePerRequestFilter {
 
     private static final AntPathMatcher matcher = new AntPathMatcher();
 
-    private static final String AUTH_HEADER = "x-mo-token";
+    public static final String AUTH_HEADER = "x-mo-token";
 
     public static final String USER_ATTR_KEY = "USER_ATTR_KEY";
     public static final String TOKEN_ATTR_KEY = "TOKEN_ATTR_KEY";
