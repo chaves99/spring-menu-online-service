@@ -1,6 +1,7 @@
 package com.menuonline.controller;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -90,8 +91,8 @@ public class ProductController {
             @PathVariable Long id, @RequestBody CreateProductRequest body) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         Product product = service
-            .findByUserAndId(user.getId(), id)
-            .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
+                .findByUserAndId(user.getId(), id)
+                .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
         return ResponseEntity.ok(ProductResponse.from(service.update(product, body)));
     }
 
@@ -113,8 +114,11 @@ public class ProductController {
             @RequestParam(defaultValue = "0", required = false) int page,
             @RequestParam(defaultValue = "20", required = false) int size) throws IOException {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
-        service.delete(id, user);
-        bucketSerivce.delete(user.getId(), id);
+        Product product = service.findByUserAndId(user.getId(), id)
+                .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
+
+        bucketSerivce.delete(product.getImage());
+        service.delete(product);
         return ResponseEntity.ok().build();
     }
 

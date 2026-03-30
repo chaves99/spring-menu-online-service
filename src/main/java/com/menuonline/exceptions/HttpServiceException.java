@@ -15,6 +15,12 @@ public class HttpServiceException extends RuntimeException {
 
     private final HttpStatus status;
 
+    public HttpServiceException(String message, ErrorMessages messageEnum, HttpStatus status) {
+        super(message);
+        this.messageEnum = messageEnum;
+        this.status = status;
+    }
+
     public static HttpServiceException notFound() {
         return new HttpServiceException(ErrorMessages.ENTITY_NOT_FOUND, HttpStatus.NOT_FOUND);
     }

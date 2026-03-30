@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -96,7 +97,7 @@ public class UserController {
     public ResponseEntity<LoginUserResponse> get(HttpServletRequest request) {
         String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
         return userService.get(token)
-                .map(t ->  {
+                .map(t -> {
                     subscriptionService.verifyUserFreeTier(t.getUser());
                     return ResponseEntity.ok(LoginUserResponse.from(t));
                 })
@@ -108,18 +109,32 @@ public class UserController {
             @RequestParam("image_file") MultipartFile file) throws IOException {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
-        String imageUrl = bucketSerivce.uploadEstablishment(user, file);
-        return ResponseEntity.ok(LoginUserResponse.from(user, token, imageUrl));
+        String key = bucketSerivce.uploadEstablishment(user.getId(), file);
+        user = userService.updateImage(user, key);
+        return ResponseEntity.ok(LoginUserResponse.from(user, token));
+    }
+
+    @DeleteMapping("/image")
+    public ResponseEntity<LoginUserResponse> deleteImage(HttpServletRequest request) {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
+        try {
+            bucketSerivce.delete(user.getImage());
+            user = userService.deleteImage(user);
+            return ResponseEntity.ok(LoginUserResponse.from(user, token));
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @PutMapping("/description")
     public ResponseEntity<LoginUserResponse> updateDescription(HttpServletRequest request,
             @RequestBody Map<String, String> body) {
-            UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
-            String description = body.get("description");
-            String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
-            user = userService.updateDescription(user, description);
-            return ResponseEntity.ok(LoginUserResponse.from(user, token));
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        String description = body.get("description");
+        String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
+        user = userService.updateDescription(user, description);
+        return ResponseEntity.ok(LoginUserResponse.from(user, token));
     }
 
 }

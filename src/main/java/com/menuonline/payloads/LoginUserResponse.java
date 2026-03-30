@@ -52,19 +52,4 @@ public record LoginUserResponse(
                 user.getUpdatedAt());
     }
 
-    public static LoginUserResponse from(UserEntity user, String token, String imageUrl) {
-        Subscription subs = Subscription
-                .findCurrent(user.getSubscriptions());
-        return new LoginUserResponse(token,
-                user.getEmail(),
-                user.getEstablishmentName(),
-                user.getEstablishmentUrl(),
-                user.getEstablishmentDescription(),
-                imageUrl,
-                subs.getDescription(),
-                subs.getStatus().toString(),
-                user.getCreatedAt(),
-                user.getUpdatedAt());
-    }
-
 }

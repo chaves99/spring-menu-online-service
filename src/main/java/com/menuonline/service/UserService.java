@@ -73,7 +73,8 @@ public class UserService {
 
         if (!CryptoUtil.validate(request.password(), user.getPassword())) {
             log.warn("login - password not valid - email: {}", request.email());
-            throw new HttpServiceException(null, HttpStatus.UNAUTHORIZED);
+            throw new HttpServiceException("Password invalid for email:" + request.email(), null,
+                    HttpStatus.UNAUTHORIZED);
         }
 
         log.info("login - user tokens: {}", user.getTokenAccesses().size());
@@ -162,6 +163,16 @@ public class UserService {
 
     public UserEntity updateDescription(UserEntity user, String description) {
         user.setEstablishmentDescription(description);
+        return userRepository.save(user);
+    }
+
+    public UserEntity deleteImage(UserEntity user) {
+        user.setImage(null);
+        return userRepository.save(user);
+    }
+
+    public UserEntity updateImage(UserEntity user, String key) {
+        user.setImage(key);
         return userRepository.save(user);
     }
 

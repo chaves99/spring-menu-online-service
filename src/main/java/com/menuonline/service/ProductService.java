@@ -117,11 +117,8 @@ public class ProductService {
         productRepository.toggleActive(product.getId());
     }
 
-    public void delete(Long id, UserEntity user) {
-        log.info("delete - id:{}", id);
-        Product product = productRepository
-                .findByIdAndUserId(id, user.getId())
-                .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
+    public void delete(Product product) {
+        log.info("delete - product:{}", product);
         productRepository.delete(product);
     }
 

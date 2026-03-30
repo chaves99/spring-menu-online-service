@@ -55,7 +55,8 @@ public class SubscriptionService {
     public void verifyUserFreeTier(UserEntity user) {
         Optional<Subscription> first = user.getSubscriptions().stream().filter(s -> s.getFreeTier()).findFirst();
         first.ifPresent(subs -> {
-            if (subs.getEndAt().isBefore(LocalDateTime.now())) {
+            boolean before = subs.getEndAt().isBefore(LocalDateTime.now());
+            if (before) {
                 subs.setStatus(Subscription.Status.CANCELED);
                 subscriptionRepository.save(subs);
             }

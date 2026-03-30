@@ -22,23 +22,19 @@ public class ErrorHandlerResponse {
     @ExceptionHandler({ Exception.class })
     public ResponseEntity<ErrorDetail> genericError(Exception except) {
         List<String> stackTrace = Stream
-            .of(except.getStackTrace())
-            .map(ste -> ste.getClassName() + ":" + ste.getLineNumber() + "\n" )
-            .filter(className -> className.contains("menuonline"))
-            .toList();
-        log.warn("genericError - msg: {} getStackTrace:{} exception:{}", except.getLocalizedMessage(), stackTrace, except);
+                .of(except.getStackTrace())
+                .map(ste -> ste.getClassName() + ":" + ste.getLineNumber() + "\n")
+                .filter(className -> className.contains("menuonline"))
+                .toList();
+        log.warn("genericError - msg: {} getStackTrace:{} exception:{}", except.getLocalizedMessage(), stackTrace,
+                except);
         return ResponseEntity.internalServerError().body(new ErrorDetail(ErrorMessages.INTERNAL_ERROR));
     }
 
     @ExceptionHandler({ HttpServiceException.class })
     public ResponseEntity<ErrorDetail> customError(HttpServiceException except) {
-        log.warn("customError - exception message: {}", except.getLocalizedMessage());
-        List<String> stackTrace = Stream
-            .of(except.getStackTrace())
-            .map(ste -> ste.getClassName() + ":" + ste.getLineNumber() + "\n" )
-            .filter(className -> className.contains("menuonline"))
-            .toList();
-        log.warn("genericError - msg: {} getStackTrace:{}", except.getMessage(), stackTrace);
+        log.error("customError - messageEnum:{} status:{} exception:{}", except.getMessageEnum(), except.getStatus(),
+                except);
         return ResponseEntity
                 .status(except.getStatus())
                 .body(new ErrorDetail(except.getMessageEnum()));
