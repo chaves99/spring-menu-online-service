@@ -1,7 +1,6 @@
 package com.menuonline.controller;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -117,8 +116,8 @@ public class ProductController {
         Product product = service.findByUserAndId(user.getId(), id)
                 .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
 
-        bucketSerivce.delete(product.getImage());
         service.delete(product);
+        bucketSerivce.delete(product.getImage());
         return ResponseEntity.ok().build();
     }
 

@@ -1,5 +1,7 @@
 package com.menuonline.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +14,7 @@ import com.menuonline.config.AuthFilter;
 import com.menuonline.entity.Subscription;
 import com.menuonline.entity.UserEntity;
 import com.menuonline.exceptions.HttpServiceException;
+import com.menuonline.payloads.AvailablePlansResponse;
 import com.menuonline.payloads.SubscriptionResponse;
 import com.menuonline.service.EmailService;
 import com.menuonline.service.StripeService;
@@ -79,12 +82,17 @@ public class SubscriptionController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/new-plan")
-    public ResponseEntity<String> getNewPlanUrl(HttpServletRequest request) {
+    @GetMapping("/plan/{priceId}")
+    public ResponseEntity<String> getNewPlanUrl(HttpServletRequest request, @PathVariable String priceId) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
-        return stripeService.generateNewPlanUrl(user.getEmail())
+        return stripeService.generateNewPlanUrl(user.getEmail(), priceId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.internalServerError().build());
+    }
+
+    @GetMapping("/plan")
+    public ResponseEntity<List<AvailablePlansResponse>> getPlans() {
+        return ResponseEntity.ok(stripeService.findPlans());
     }
 
 }

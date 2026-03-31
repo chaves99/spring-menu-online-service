@@ -1,5 +1,6 @@
 package com.menuonline.service;
 
+import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -9,13 +10,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.menuonline.exceptions.HttpServiceException;
+import com.menuonline.payloads.AvailablePlansResponse;
 import com.menuonline.payloads.SubscriptionDetailResponse;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
+import com.stripe.model.Price;
+import com.stripe.model.Product;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.CustomerListParams;
+import com.stripe.param.ProductListParams;
 import com.stripe.param.SubscriptionCancelParams;
 import com.stripe.param.SubscriptionListParams;
 import com.stripe.param.SubscriptionRetrieveParams;
@@ -30,11 +35,7 @@ public class StripeService {
 
     private final StripeClient client;
 
-    private final String planMonthly;
-
-    public StripeService(@Value("${stripe.secretKey}") String secretKey,
-            @Value("${stripe.plans.monthly-simple}") String planMonthly) {
-        this.planMonthly = planMonthly;
+    public StripeService(@Value("${stripe.secretKey}") String secretKey) {
         client = new StripeClient(secretKey);
     }
 
@@ -157,11 +158,11 @@ public class StripeService {
         }
     }
 
-    public Optional<String> generateNewPlanUrl(String email) {
+    public Optional<String> generateNewPlanUrl(String email, String priceId) {
         log.info("generateNewPlanUrl - email:{}");
         try {
             SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
-                    .setSuccessUrl("https://itimenu.app/admin/subscription")
+                    .setSuccessUrl("https://itimenu.app/post-sale")
                     .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
                     .setCustomerEmail(email)
                     .setLocale(SessionCreateParams.Locale.PT_BR)
@@ -171,7 +172,7 @@ public class StripeService {
                             .build())
                     .addLineItem(SessionCreateParams.LineItem.builder()
                             .setQuantity(1l)
-                            .setPrice(planMonthly)
+                            .setPrice(priceId)
                             .build())
                     .build();
             Session session = client.v1().checkout().sessions().create(sessionCreateParams);
@@ -192,6 +193,29 @@ public class StripeService {
             log.warn("findDetails - exception: {}", e.getMessage());
         }
         return Optional.empty();
+    }
+
+    public List<AvailablePlansResponse> findPlans() {
+        try {
+            ProductListParams params = ProductListParams.builder()
+                    .addExpand("data.default_price").build();
+            return client.v1().products().list(params).getData().stream().map(product -> {
+                product.getDescription();
+                product.getName();
+                String description = product.getMetadata().get("description");
+                Price price = product.getDefaultPriceObject();
+                String interval = price.getRecurring().getInterval();
+                BigDecimal finalValue = BigDecimal
+                        .valueOf(price.getUnitAmount())
+                        .divide(BigDecimal.valueOf(10));
+                return new AvailablePlansResponse(price.getId(), finalValue, product.getName(),
+                        description, interval);
+
+            }).toList();
+        } catch (StripeException e) {
+            log.warn("findDetails - exception: {}", e.getMessage());
+        }
+        return List.of();
     }
 
 }

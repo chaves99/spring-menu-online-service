@@ -23,7 +23,6 @@ public class MenuOnlineApplication {
     @Bean
     public CommandLineRunner runner(StripeService stripeService) {
         return a -> {
-            // stripeService.generateNewPlanUrl("viniciusbaleia1999@gmail.com");
             // stripeService.generateChangePaymentMethodUrl("cus_UAlUQyea60F4Vl", "sub_1TCPxbRsjQxNujCX2uOhgTJK");
         };
     }

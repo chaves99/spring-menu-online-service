@@ -15,6 +15,12 @@ public class HttpServiceException extends RuntimeException {
 
     private final HttpStatus status;
 
+    public HttpServiceException(String message) {
+        super(message);
+        messageEnum = null;
+        status = HttpStatus.INTERNAL_SERVER_ERROR;
+    }
+
     public HttpServiceException(String message, ErrorMessages messageEnum, HttpStatus status) {
         super(message);
         this.messageEnum = messageEnum;
