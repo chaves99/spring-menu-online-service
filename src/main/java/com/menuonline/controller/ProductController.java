@@ -117,7 +117,9 @@ public class ProductController {
                 .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
 
         service.delete(product);
-        bucketSerivce.delete(product.getImage());
+        if (product.getImage() != null) {
+            bucketSerivce.delete(product.getImage());
+        }
         return ResponseEntity.ok().build();
     }
 

@@ -118,7 +118,7 @@ public class ProductService {
     }
 
     public void delete(Product product) {
-        log.info("delete - product:{}", product);
+        log.info("delete - productId:{}", product.getId());
         productRepository.delete(product);
     }
 
