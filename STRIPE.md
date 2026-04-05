@@ -7,6 +7,7 @@
 
 - customer.subscription.created -> when a new subscription occurs
 - customer.subscription.deleted -> when a user cancel a subscription
+- customer.subscription.update -> when a payment fail, it receives this object with status=past_due
 - test how api(subscription) act when payment fail: what events are sent?
 
 ### Flow

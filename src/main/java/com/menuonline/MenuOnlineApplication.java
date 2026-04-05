@@ -23,7 +23,7 @@ public class MenuOnlineApplication {
     @Bean
     public CommandLineRunner runner(StripeService stripeService) {
         return a -> {
-            // stripeService.generateChangePaymentMethodUrl("cus_UAlUQyea60F4Vl", "sub_1TCPxbRsjQxNujCX2uOhgTJK");
+            // System.out.println(stripeService.findSubscriptionById("sub_1TGje4RsjQxNujCXQ8Bj3f59"));
         };
     }
 

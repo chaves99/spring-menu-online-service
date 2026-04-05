@@ -12,12 +12,10 @@ import com.menuonline.entity.Subscription;
 import com.menuonline.entity.UserEntity;
 import com.menuonline.payloads.SubscriptionResponse;
 import com.menuonline.payloads.SubscriptionResponse.SubscriptionResponseItem;
-import com.menuonline.payloads.stripe.StripeWebhookInvoice;
 import com.menuonline.payloads.stripe.StripeWebhookSubscriptionEvent;
 import com.menuonline.repository.SubscriptionRepository;
-import com.menuonline.repository.UserRepository;
 import com.menuonline.utils.DateUtils;
-import com.menuonline.utils.SubscriptionStatusConverter;
+import com.menuonline.utils.SubscriptionConverter;
 import com.menuonline.utils.TokenGeneratorUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -32,7 +30,6 @@ public class SubscriptionService {
     private Integer freeTierDays;
 
     private final SubscriptionRepository subscriptionRepository;
-    private final UserRepository userRepository;
 
     public Subscription createFreeTier(UserEntity user) {
         Subscription subs = new Subscription();
@@ -49,6 +46,7 @@ public class SubscriptionService {
     public Subscription cancel(UserEntity user, Subscription subscription) {
         subscription.setStatus(Subscription.Status.CANCELED);
         subscription.setEndAt(LocalDateTime.now());
+        subscription.setEndReason(Subscription.EndReason.USER_CANCEL);
         return subscriptionRepository.save(subscription);
     }
 
@@ -67,36 +65,13 @@ public class SubscriptionService {
         Subscription newSubs = new Subscription();
         newSubs.setId(event.id());
         newSubs.setCustomerId(event.customer());
-        newSubs.setDescription("Plano Unico.");
+        newSubs.setDescription(event.description() != null ? event.description() : "Assinatura");
         newSubs.setUser(user);
         newSubs.setEndAt(event.getCurrentPeriodEnd());
         newSubs.setFreeTier(false);
-        newSubs.setStatus(SubscriptionStatusConverter.convert(event.status()));
+        newSubs.setStatus(SubscriptionConverter.convertStatus(event.status()));
         log.info("createSubscription - new subscription:{}", newSubs);
         subscriptionRepository.save(newSubs);
-        this.finishFreeTier(user);
-    }
-
-    public void paymentFail(StripeWebhookInvoice invoice) {
-        log.info("paymentFail - invoice:{}", invoice);
-        Optional<UserEntity> userOpt = userRepository.findByEmail(invoice.customerEmail());
-
-        if (userOpt.isEmpty()) {
-            log.error("paymentFail - email not found - invoice:{}", invoice);
-            return;
-        }
-
-        var user = userOpt.get();
-        Optional<Subscription> subscription = user.getSubscriptions().stream()
-                .filter(s -> s.getId().equals(invoice.id())).findFirst();
-
-        subscription.ifPresentOrElse(subs -> {
-            subs.setStatus(Subscription.Status.UNPAID);
-        }, () -> {
-            log.error("paymentFail - subscription not found - invoice:{}", invoice);
-            return;
-        });
-
     }
 
     public void canceled(StripeWebhookSubscriptionEvent event) {
@@ -136,6 +111,15 @@ public class SubscriptionService {
             return new SubscriptionResponse(SubscriptionResponse.toSubscriptionItem(current), history);
         }
         return new SubscriptionResponse(null, history);
+    }
+
+    public void update(String subscriptionId, UserEntity user, Subscription.Status status) {
+        Optional<Subscription> optional = subscriptionRepository
+                .findByIdAndUserId(subscriptionId, user.getId());
+        optional.ifPresent(subs -> {
+            subs.setStatus(status);
+            subscriptionRepository.save(subs);
+        });
     }
 
     public Optional<Subscription> findSubscription(String subscriptionId, Long userId) {

@@ -16,10 +16,10 @@ import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Price;
-import com.stripe.model.Product;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.CustomerListParams;
+import com.stripe.param.PriceRetrieveParams;
 import com.stripe.param.ProductListParams;
 import com.stripe.param.SubscriptionCancelParams;
 import com.stripe.param.SubscriptionListParams;
@@ -104,9 +104,14 @@ public class StripeService {
         return Optional.empty();
     }
 
-    public Optional<?> findSubscriptionByCustomerId(String customerId) {
+    public Optional<Subscription> findSubscriptionByCustomerId(String customerId) {
         try {
             Customer customer = client.v1().customers().retrieve(customerId);
+
+            if (customer.getSubscriptions() == null) {
+                log.info("findSubscriptionByCustomerId - no subs find for customer:{}", customerId);
+                return Optional.empty();
+            }
 
             List<Subscription> data = customer.getSubscriptions().getData();
             log.info("findSubscriptionByCustomerId - customer:{} subscription size:{}",
@@ -119,6 +124,20 @@ public class StripeService {
         }
     }
 
+    public Optional<Subscription> findSubscriptionById(String subsId) {
+        try {
+            SubscriptionRetrieveParams param = SubscriptionRetrieveParams.builder()
+                    .addExpand("customer")
+                    .build();
+            var subs = client.v1().subscriptions().retrieve(subsId, param);
+            return Optional.ofNullable(subs);
+        } catch (StripeException e) {
+            e.printStackTrace();
+            log.warn("findSubscriptionById - exception: {}", e.getMessage());
+            throw new HttpServiceException(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     public Optional<String> generateChangePaymentMethodUrl(String customer, String subscription) {
         log.info("generateChangePaymentMethodUrl - customer:{} subscription:{}", customer, subscription);
         try {
@@ -126,6 +145,7 @@ public class StripeService {
 
             SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
                     .setCustomer(customer)
+                    .setLocale(SessionCreateParams.Locale.PT_BR)
                     .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                     .setSetupIntentData(SessionCreateParams.SetupIntentData.builder()
                             .putMetadata("customer_id", customer)
@@ -164,8 +184,12 @@ public class StripeService {
             SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
                     .setSuccessUrl("https://itimenu.app/post-sale")
                     .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
+                    .setSubmitType(SessionCreateParams.SubmitType.SUBSCRIBE)
                     .setCustomerEmail(email)
                     .setLocale(SessionCreateParams.Locale.PT_BR)
+                    .setSubscriptionData(SessionCreateParams.SubscriptionData.builder()
+                            .setDescription(getDescription(priceId))
+                            .build())
                     .setBrandingSettings(SessionCreateParams.BrandingSettings
                             .builder()
                             .setFontFamily(SessionCreateParams.BrandingSettings.FontFamily.ROBOTO)
@@ -181,6 +205,12 @@ public class StripeService {
             log.warn("generateNewPlanUrl - exception: {}", e.getMessage());
             return Optional.empty();
         }
+    }
+
+    public String getDescription(String priceId) throws StripeException {
+        Price price = client.v1().prices().retrieve(priceId,
+                PriceRetrieveParams.builder().addExpand("product").build());
+        return price.getProductObject().getDescription();
     }
 
     public Optional<SubscriptionDetailResponse> findDetails(String subscriptionId) {

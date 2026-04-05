@@ -47,6 +47,9 @@ public class Subscription {
 
     private Boolean freeTier;
 
+    @Enumerated(EnumType.STRING)
+    private EndReason endReason;
+
     private LocalDateTime endAt;
 
     @CreatedDate
@@ -82,6 +85,11 @@ public class Subscription {
         CANCELED;
     }
 
+    public enum EndReason {
+        UNPAID,
+        USER_CANCEL;
+    }
+
     /**
      * the method always will return a subs
      * because all user MUST have a subs even
@@ -92,8 +100,8 @@ public class Subscription {
             return subs.get(0);
 
         Optional<Subscription> active = subs.stream()
-            .filter(Subscription::isActive)
-            .findFirst();
+                .filter(Subscription::isActive)
+                .findFirst();
         if (active.isPresent()) {
             return active.get();
         }
@@ -103,7 +111,7 @@ public class Subscription {
 
     public static boolean isActive(Subscription subscription) {
         return subscription.getStatus().equals(Status.ACTIVE)
-            || subscription.getStatus().equals(Status.UNPAID);
+                || subscription.getStatus().equals(Status.UNPAID);
     }
 
 }

@@ -26,6 +26,7 @@ CREATE TABLE subscription (
     description VARCHAR(150) NOT NULL,
     status VARCHAR(50) NOT NULL,
     free_tier BOOLEAN DEFAULT TRUE,
+    end_reason VARCHAR(250),
     end_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
