@@ -37,7 +37,6 @@ public class MenuController {
         Optional<UserEntity> userOpt = token != null
             ? tokenAccessRepository.findById(token).map(t -> t.getUser())
             : Optional.empty();
-        System.out.println("userEntity: " + userOpt);
         return userService
                 .findByUrl(establishmentUrl)
                 .flatMap(user -> {

@@ -167,7 +167,6 @@ public class StripeService {
     public String cancel(String subscriptionId) {
         SubscriptionCancelParams params = SubscriptionCancelParams.builder()
                 .setProrate(true)
-                // .setCancellationDetails(CancellationDetails)
                 .build();
         try {
             Subscription cancel = client.v1().subscriptions().cancel(subscriptionId, params);

@@ -74,15 +74,15 @@ public class SubscriptionService {
         subscriptionRepository.save(newSubs);
     }
 
-    public void canceled(StripeWebhookSubscriptionEvent event) {
+    public Optional<Subscription> canceled(StripeWebhookSubscriptionEvent event) {
         log.info("canceled - event:{}", event);
-        subscriptionRepository
+        return subscriptionRepository
                 .findByIdAndCustomerId(event.id(), event.customer())
-                .ifPresentOrElse(subs -> {
+                .map(subs -> {
                     subs.setStatus(Subscription.Status.CANCELED);
-                    subs.setEndAt(DateUtils.secondsToObject(event.endedAt()));
-                    subscriptionRepository.save(subs);
-                }, () -> log.warn("subscription canceled not found: {}", event));
+                    subs.setEndAt(LocalDateTime.now());
+                    return subscriptionRepository.save(subs);
+                });
     }
 
     public void finishFreeTier(UserEntity user) {
@@ -113,17 +113,15 @@ public class SubscriptionService {
         return new SubscriptionResponse(null, history);
     }
 
-    public void update(String subscriptionId, UserEntity user, Subscription.Status status) {
-        Optional<Subscription> optional = subscriptionRepository
-                .findByIdAndUserId(subscriptionId, user.getId());
-        optional.ifPresent(subs -> {
-            subs.setStatus(status);
-            subscriptionRepository.save(subs);
-        });
-    }
-
     public Optional<Subscription> findSubscription(String subscriptionId, Long userId) {
         return subscriptionRepository.findByIdAndUserId(subscriptionId, userId);
+    }
+
+    public Optional<Subscription> setEndReasonPastDue(String subscriptionId) {
+        return subscriptionRepository.findById(subscriptionId).map(subs -> {
+            subs.setEndReason(Subscription.EndReason.UNPAID);
+            return subscriptionRepository.save(subs);
+        });
     }
 
 }

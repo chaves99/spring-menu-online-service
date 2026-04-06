@@ -11,7 +11,6 @@ import com.menuonline.service.EmailService;
 import com.menuonline.service.StripeService;
 import com.menuonline.service.SubscriptionService;
 import com.menuonline.service.UserService;
-import com.menuonline.utils.SubscriptionConverter;
 import com.stripe.model.Subscription;
 
 import lombok.RequiredArgsConstructor;
@@ -39,28 +38,35 @@ public class SubscriptionEventFacade {
 
     public void cancelSubscription(StripeWebhookSubscriptionEvent event) {
         log.info("cancelSubscription - event:{}", event);
-        subscriptionService.canceled(event);
-        stripeService.findEmailByCustomer(event.customer()).ifPresentOrElse(email -> {
-            // send email
-        }, () -> log.warn("cancelSubscription - email not found for event:{}", event));
+        subscriptionService.canceled(event).ifPresent(subs -> {
+            UserEntity user = subs.getUser();
+            log.info("cancelSubscription - subscription:{} user:{}", subs, user);
+            // TODO send email
+        });
     }
 
     public void syncSubscription(String subscriptionId) {
-        log.info("syncSubscription - subscriptionId:{}", subscriptionId);
         Optional<Subscription> subscription = stripeService.findSubscriptionById(subscriptionId);
-        log.info("syncSubscription - subscription:{}", subscription);
+        log.info("syncSubscription - id:{} subscription:{}", subscriptionId, subscription);
 
-        subscription.ifPresent(subs -> {
+        if (subscription.isPresent()) {
+            Subscription subs = subscription.get();
+
             StripeSubscriptionStatus status = StripeSubscriptionStatus.fromCode(subs.getStatus());
-            String email = subs.getCustomerObject().getEmail();
-            Optional<UserEntity> userOpt = userService.findByEmail(email);
-            if (userOpt.isEmpty()) {
-                log.warn("syncSubscription - user not found for subscription - email:{} subs:{}", email, subs);
-                return;
+
+            if (status.equals(StripeSubscriptionStatus.PAST_DUE)) {
+                String email = subs.getCustomerObject().getEmail();
+                Optional<UserEntity> userOpt = userService.findByEmail(email);
+                if (userOpt.isEmpty()) {
+                    log.warn("syncSubscription - user not found for subscription - email:{} subs:{}", email, subs);
+                    return;
+                }
+                subscriptionService.setEndReasonPastDue(subscriptionId);
+                stripeService.cancel(subscriptionId);
+            } else {
+                log.warn("syncSubscription - status unhandled:{}", status);
             }
 
-            subscriptionService.update(subscriptionId, userOpt.get(), SubscriptionConverter.convertStatus(status));
-
-        });
+        }
     }
 }
