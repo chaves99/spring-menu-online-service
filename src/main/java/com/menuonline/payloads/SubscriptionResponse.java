@@ -13,6 +13,7 @@ public record SubscriptionResponse(SubscriptionResponseItem active,
                 subs.getFreeTier(),
                 subs.getDescription(),
                 subs.getStatus(),
+                subs.getEndReason(),
                 subs.getEndAt(),
                 subs.getCreatedAt());
     }
@@ -21,6 +22,7 @@ public record SubscriptionResponse(SubscriptionResponseItem active,
             boolean freeTier,
             String description,
             Subscription.Status status,
+            Subscription.EndReason endReason,
             LocalDateTime endDate,
             LocalDateTime createdAt) {
     }
