@@ -117,6 +117,16 @@ public class SubscriptionService {
         return subscriptionRepository.findByIdAndUserId(subscriptionId, userId);
     }
 
+    public Optional<Subscription> updateEndAt(String subscriptionId, LocalDateTime endAt) {
+        if (endAt == null) {
+            return Optional.empty();
+        }
+        return subscriptionRepository.findById(subscriptionId).map(subs -> {
+            subs.setEndAt(endAt);
+            return subscriptionRepository.save(subs);
+        });
+    }
+
     public Optional<Subscription> setEndReasonPastDue(String subscriptionId) {
         return subscriptionRepository.findById(subscriptionId).map(subs -> {
             subs.setEndReason(Subscription.EndReason.UNPAID);

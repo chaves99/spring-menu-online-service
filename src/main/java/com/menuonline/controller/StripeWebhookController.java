@@ -52,7 +52,7 @@ public class StripeWebhookController {
                     eventFacade.cancelSubscription(event.data().object());
                     break;
                 case "customer.subscription.updated":
-                    eventFacade.syncSubscription(event.data().object().id());
+                    eventFacade.syncSubscription(event.data().object());
                     break;
                 default:
                     log.info("webhook - unhandle type:{} event:{} dataJson:{}",

@@ -45,7 +45,8 @@ public class SubscriptionEventFacade {
         });
     }
 
-    public void syncSubscription(String subscriptionId) {
+    public void syncSubscription(StripeWebhookSubscriptionEvent event) {
+        String subscriptionId = event.id();
         Optional<Subscription> subscription = stripeService.findSubscriptionById(subscriptionId);
         log.info("syncSubscription - id:{} subscription:{}", subscriptionId, subscription);
 
@@ -63,6 +64,8 @@ public class SubscriptionEventFacade {
                 }
                 subscriptionService.setEndReasonPastDue(subscriptionId);
                 stripeService.cancel(subscriptionId);
+            } else if (status.equals(StripeSubscriptionStatus.ACTIVE)) {
+                subscriptionService.updateEndAt(subscriptionId, event.getCurrentPeriodEnd());
             } else {
                 log.warn("syncSubscription - status unhandled:{}", status);
             }
