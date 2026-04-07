@@ -28,7 +28,6 @@ import com.menuonline.service.EmailService;
 import com.menuonline.service.MockMenuService;
 import com.menuonline.service.SimpleStorageBucketSerivce;
 import com.menuonline.service.SubscriptionService;
-import com.menuonline.service.ThymeleafTemplateService;
 import com.menuonline.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,7 +44,6 @@ public class UserController {
     private final MockMenuService mockMenuService;
     private final EmailService emailService;
     private final SubscriptionService subscriptionService;
-    private final ThymeleafTemplateService thymeleafTemplateService;
 
     @PostMapping
     @Transactional
@@ -74,8 +72,7 @@ public class UserController {
     @Transactional
     public ResponseEntity<?> generateToken(@PathVariable String email) {
         String token = userService.generateRecoveryToken(email);
-        String recoveryPasswordTemplate = thymeleafTemplateService.recoveryPassword(token);
-        emailService.sendToken(email, recoveryPasswordTemplate);
+        emailService.sendToken(email, token);
         return ResponseEntity.ok().build();
     }
 
