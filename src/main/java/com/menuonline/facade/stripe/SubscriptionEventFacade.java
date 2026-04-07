@@ -5,11 +5,13 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 import com.menuonline.entity.UserEntity;
+import com.menuonline.entity.Subscription.EndReason;
 import com.menuonline.payloads.stripe.StripeSubscriptionStatus;
 import com.menuonline.payloads.stripe.StripeWebhookSubscriptionEvent;
 import com.menuonline.service.EmailService;
 import com.menuonline.service.StripeService;
 import com.menuonline.service.SubscriptionService;
+import com.menuonline.service.ThymeleafTemplateService;
 import com.menuonline.service.UserService;
 import com.stripe.model.Subscription;
 
@@ -25,6 +27,7 @@ public class SubscriptionEventFacade {
     private final StripeService stripeService;
     private final EmailService emailService;
     private final UserService userService;
+    private final ThymeleafTemplateService templateService;
 
     public void newSubscription(StripeWebhookSubscriptionEvent event) {
         log.info("newSubscription - event:{}", event);
@@ -41,7 +44,11 @@ public class SubscriptionEventFacade {
         subscriptionService.canceled(event).ifPresent(subs -> {
             UserEntity user = subs.getUser();
             log.info("cancelSubscription - subscription:{} user:{}", subs, user);
-            // TODO send email
+            if (subs.getEndReason().equals(EndReason.UNPAID)) {
+                emailService.sendPastDuePayment(user.getEmail(), templateService.paymentPastDue());
+            } else {
+                emailService.subscriptionCancel(user.getEmail(), templateService.cancelSubscription());
+            }
         });
     }
 

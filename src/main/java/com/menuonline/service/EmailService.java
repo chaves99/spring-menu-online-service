@@ -80,6 +80,26 @@ public class EmailService {
         }
     }
 
+    public void subscriptionCancel(String emailTo, String template) {
+        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+        parts.add("from", hostFrom);
+        parts.add("to", emailTo);
+        parts.add("subject", "Assinatura cancelada.");
+        parts.add("html", template);
+
+        send(parts);
+    }
+
+    public void sendPastDuePayment(String emailTo, String template) {
+        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+        parts.add("from", hostFrom);
+        parts.add("to", emailTo);
+        parts.add("subject", "Erro no pagamento(Assinatura cancelada).");
+        parts.add("html", template);
+
+        send(parts);
+    }
+
     public void sendUserMessage(String userEmail, String subject, String message) {
         MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
         parts.add("from", hostFrom);
@@ -88,9 +108,6 @@ public class EmailService {
         parts.add("text", message);
 
         send(parts);
-    }
-
-    public void subscriptionCancel(String emailTo) throws Exception {
     }
 
 }

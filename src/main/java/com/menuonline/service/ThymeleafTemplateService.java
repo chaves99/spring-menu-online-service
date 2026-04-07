@@ -21,6 +21,14 @@ public class ThymeleafTemplateService {
         return process("recovery_password", params);
     }
 
+    public String paymentPastDue() {
+        return process("payment_past_due_cancel", Map.of());
+    }
+
+    public String cancelSubscription() {
+        return process("cancel_subscription", Map.of());
+    }
+
     private String process(String templateName, Map<String, Object> variables) {
         final Context context = new Context();
         context.setVariables(variables);

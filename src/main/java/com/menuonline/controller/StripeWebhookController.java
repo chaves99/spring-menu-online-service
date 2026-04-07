@@ -55,8 +55,7 @@ public class StripeWebhookController {
                     eventFacade.syncSubscription(event.data().object());
                     break;
                 default:
-                    log.info("webhook - unhandle type:{} event:{} dataJson:{}",
-                            event.type(), event, payload);
+                    log.info("webhook - unhandle event - event:{}", event);
                     break;
             }
         } catch (Exception e) {
