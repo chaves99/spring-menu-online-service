@@ -85,6 +85,21 @@ public class ProductController {
         return ResponseEntity.ok().build();
     }
 
+    @DeleteMapping("/{productId}/image")
+    public ResponseEntity<?> deleteImage(HttpServletRequest request,
+            @PathVariable Long productId) {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        return service.findByUserAndId(user.getId(), productId)
+                .map(product -> {
+                    try {
+                        Product delete = bucketSerivce.delete(product);
+                        return ResponseEntity.ok(ProductResponse.from(delete));
+                    } catch (IOException e) {
+                        return ResponseEntity.internalServerError().build();
+                    }
+                }).orElse(ResponseEntity.internalServerError().build());
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<ProductResponse> update(HttpServletRequest request,
             @PathVariable Long id, @RequestBody CreateProductRequest body) {

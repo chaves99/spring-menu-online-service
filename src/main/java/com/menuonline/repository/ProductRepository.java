@@ -56,6 +56,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             """)
     Page<ProductProjection> findByUserId(long userId, Pageable pageable);
 
+    List<Product> findByCategoryIdIn(List<Long> categoriesIds);
+
     public static interface ProductProjection {
         public long getId();
 

@@ -76,6 +76,12 @@ public class SimpleStorageBucketSerivce {
 
     }
 
+    public Product delete(Product product) throws IOException {
+        this.delete(product.getImage());
+        product.setImage(null);
+        return productRepository.save(product);
+    }
+
     public void delete(String keyName) throws IOException {
         s3Client.deleteObject(req -> {
             req.bucket(bucketConfig.bucketName());
