@@ -7,8 +7,8 @@ import com.menuonline.exceptions.HttpServiceException;
 public record AvailablePlansResponse(String priceId, BigDecimal value, String name, String description,
         PlanRecurringInterval recurringInterval) {
 
-    public AvailablePlansResponse(String priceId, BigDecimal value, String name,  String description, String recurring) {
-        this(priceId, value, name, description, PlanRecurringInterval.get(recurring));
+    public AvailablePlansResponse(String priceId, BigDecimal value, String name, String description, String recurring) {
+        this(priceId, value, name, description == null ? "" : description, PlanRecurringInterval.get(recurring));
     }
 
     public enum PlanRecurringInterval {

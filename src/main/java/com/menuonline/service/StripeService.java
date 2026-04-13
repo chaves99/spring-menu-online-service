@@ -236,7 +236,8 @@ public class StripeService {
                 String interval = price.getRecurring().getInterval();
                 BigDecimal finalValue = BigDecimal
                         .valueOf(price.getUnitAmount())
-                        .divide(BigDecimal.valueOf(10));
+                        .divide(BigDecimal.valueOf(100));
+
                 return new AvailablePlansResponse(price.getId(), finalValue, product.getName(),
                         description, interval);
 
