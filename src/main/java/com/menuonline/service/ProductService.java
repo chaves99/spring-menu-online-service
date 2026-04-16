@@ -82,6 +82,7 @@ public class ProductService {
     private void savePrices(CreateProductRequest request, Product product) {
         List<Price> prices = request.prices()
                 .stream()
+                .filter(p -> p.value() != null)
                 .map(p -> new Price(null, p.value(), p.unit(), product))
                 .toList();
         priceRepository.saveAll(prices);
