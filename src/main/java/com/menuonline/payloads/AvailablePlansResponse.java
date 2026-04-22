@@ -5,10 +5,12 @@ import java.math.BigDecimal;
 import com.menuonline.exceptions.HttpServiceException;
 
 public record AvailablePlansResponse(String priceId, BigDecimal value, String name, String description,
-        PlanRecurringInterval recurringInterval) {
+        PlanRecurringInterval recurringInterval, Double valueDiscount) {
 
-    public AvailablePlansResponse(String priceId, BigDecimal value, String name, String description, String recurring) {
-        this(priceId, value, name, description == null ? "" : description, PlanRecurringInterval.get(recurring));
+    public AvailablePlansResponse(String priceId, BigDecimal value, String name, String description, String recurring,
+            Double valueDiscount) {
+        this(priceId, value, name, description == null ? "" : description, PlanRecurringInterval.get(recurring),
+                valueDiscount);
     }
 
     public enum PlanRecurringInterval {

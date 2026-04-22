@@ -227,11 +227,17 @@ public class StripeService {
     public List<AvailablePlansResponse> findPlans() {
         try {
             ProductListParams params = ProductListParams.builder()
+                    .setActive(true)
                     .addExpand("data.default_price").build();
             return client.v1().products().list(params).getData().stream().map(product -> {
                 product.getDescription();
                 product.getName();
                 String description = product.getMetadata().get("description");
+                Double valueDiscount = null;
+                try {
+                    valueDiscount = Double.valueOf(product.getMetadata().get("value_discount"));
+                } catch (Exception ignored) {
+                }
                 Price price = product.getDefaultPriceObject();
                 String interval = price.getRecurring().getInterval();
                 BigDecimal finalValue = BigDecimal
@@ -239,7 +245,7 @@ public class StripeService {
                         .divide(BigDecimal.valueOf(100));
 
                 return new AvailablePlansResponse(price.getId(), finalValue, product.getName(),
-                        description, interval);
+                        description, interval, valueDiscount);
 
             }).toList();
         } catch (StripeException e) {
