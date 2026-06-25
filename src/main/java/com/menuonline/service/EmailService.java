@@ -26,6 +26,9 @@ public class EmailService {
     @Value("${mailgun.hostFrom}")
     private String hostFrom;
 
+    @Value("${company-email}")
+    private String companyEmail;
+
     private final RestClient restClient;
 
     private final ThymeleafTemplateComponent templateComponent;
@@ -59,6 +62,15 @@ public class EmailService {
             log.warn("sendToken - exception: ", e);
             throw e;
         }
+    }
+
+    public void sendUserMessage(String userEmail, String subject, String message) {
+        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+        parts.add("from", hostFrom);
+        parts.add("to", companyEmail);
+        parts.add("subject", "from: " + userEmail);
+        parts.add("text", message);
+        send(parts);
     }
 
     private ResponseSpec send(MultiValueMap<String, Object> parts) {
@@ -106,16 +118,6 @@ public class EmailService {
         parts.add("to", emailTo);
         parts.add("subject", "Erro no pagamento(Assinatura cancelada).");
         parts.add("html", templateComponent.paymentPastDue());
-
-        send(parts);
-    }
-
-    public void sendUserMessage(String userEmail, String subject, String message) {
-        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
-        parts.add("from", hostFrom);
-        parts.add("to", hostFrom);
-        parts.add("subject", "User Message");
-        parts.add("text", message);
 
         send(parts);
     }

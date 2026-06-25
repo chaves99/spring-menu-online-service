@@ -123,7 +123,7 @@ public class UserService {
 
         if (!UserEntity.canGenerateRecoveryToken(user)) {
             throw new HttpServiceException(ErrorMessages.UNAUTHORIZED_TO_GENERATE_RECOVERY_CODE,
-                    HttpStatus.UNAUTHORIZED);
+                    HttpStatus.BAD_REQUEST);
         }
 
         String token = TokenGeneratorUtil.generate(TokenGeneratorUtil.DEFAULT_PASSWORD_RECOVERY_TOKEN_SIZE);

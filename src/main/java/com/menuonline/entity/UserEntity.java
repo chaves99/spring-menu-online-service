@@ -17,7 +17,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,7 +24,6 @@ import lombok.Setter;
 @Table(name = "users")
 @Getter
 @Setter
-@EqualsAndHashCode
 @EntityListeners(AuditingEntityListener.class)
 public class UserEntity {
 
@@ -87,6 +85,15 @@ public class UserEntity {
     @Override
     public String toString() {
         return "UserEntity[" + id + " - " + email + "]";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof UserEntity u) {
+            return u.getId().equals(getId())
+                && u.getEmail().equals(getEmail());
+        }
+        return false;
     }
 
     public static boolean canGenerateRecoveryToken(UserEntity user) {

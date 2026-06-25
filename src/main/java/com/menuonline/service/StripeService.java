@@ -89,7 +89,6 @@ public class StripeService {
                 try {
                     List<Subscription> subscriptions = v1.subscriptions().list(subsParam).getData();
                     subscriptions.forEach(s -> s.getDaysUntilDue());
-                    System.out.println("### subscription: " + subscriptions);
                     return subscriptions.stream()
                             .max(Comparator.comparingLong(s -> s.getCreated()));
                 } catch (StripeException e) {

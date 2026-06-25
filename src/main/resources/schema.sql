@@ -78,3 +78,15 @@ CREATE TABLE IF NOT EXISTS prices(
     product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS customization(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(120),
+    type VARCHAR(10) NOT NULL,
+    main_color VARCHAR(10) NOT NULL,
+    secondary_color VARCHAR(10) NOT NULL,
+    font VARCHAR(100) NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT FALSE,
+    builtin BOOLEAN NOT NULL DEFAULT FALSE,
+    user_id INTEGER NOT NULL REFERENCES users(id)
+);
+

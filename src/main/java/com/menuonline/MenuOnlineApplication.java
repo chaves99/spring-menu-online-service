@@ -8,8 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import com.menuonline.service.StripeService;
-
 @EnableJpaAuditing
 @EnableJpaRepositories
 @SpringBootApplication
@@ -21,9 +19,8 @@ public class MenuOnlineApplication {
     }
 
     @Bean
-    public CommandLineRunner runner(StripeService stripeService) {
+    public CommandLineRunner runner() {
         return a -> {
-            // System.out.println(stripeService.findSubscriptionById("sub_1TGje4RsjQxNujCXQ8Bj3f59"));
         };
     }
 

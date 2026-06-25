@@ -4,17 +4,20 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.menuonline.entity.Customization;
 import com.menuonline.entity.Schedule;
 import com.menuonline.entity.UserEntity;
 import com.menuonline.repository.ProductRepository.ProductMenuProjection;
 
 public record CustomerMenuResponse(
         EstablishmentInfoResponse info,
+        CustomizationResponse customization,
         List<ScheduleResponse> schedules,
         List<CategoryResponse> categories) {
 
     public static CustomerMenuResponse from(UserEntity user, List<Schedule> schedules,
-            List<ProductMenuProjection> projection) {
+            List<ProductMenuProjection> projection,
+            Customization customization) {
         EstablishmentInfoResponse info = new EstablishmentInfoResponse(user.getId(),
                 user.getEstablishmentName(), user.getEstablishmentDescription(), user.getInstagram(),
                 user.getFacebook(), user.getWebsite(), user.getWhatsapp(), user.getPhone(), user.getImage(),
@@ -59,7 +62,7 @@ public record CustomerMenuResponse(
                                 categories.add(cat);
                             });
         });
-        return new CustomerMenuResponse(info, scheduleResponses, categories);
+        return new CustomerMenuResponse(info, CustomizationResponse.from(customization), scheduleResponses, categories);
     }
 
     private static PriceResponse getPrice(ProductMenuProjection proj) {
@@ -78,6 +81,9 @@ public record CustomerMenuResponse(
 
     public static record CategoryResponse(Long id, String name, List<ProductResponse> products) {
     }
+
+    // public static record CustomizationResponse(String mainColor, String
+    // secondaryColor, String font, String themeType){}
 
     public static record EstablishmentInfoResponse(
             Long id,

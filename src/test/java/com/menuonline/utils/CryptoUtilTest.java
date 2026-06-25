@@ -12,11 +12,6 @@ public class CryptoUtilTest {
     @Test
     public void encrypt() throws GeneralSecurityException {
         String encrypt = CryptoUtil.encrypt("value");
-        System.out.println();
-        System.out.println();
-        System.out.println(encrypt);
-        System.out.println();
-        System.out.println();
         assertNotNull(encrypt);
     }
 

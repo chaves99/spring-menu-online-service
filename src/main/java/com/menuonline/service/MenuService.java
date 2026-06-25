@@ -5,10 +5,12 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.menuonline.entity.Customization;
 import com.menuonline.entity.Schedule;
 import com.menuonline.entity.UserEntity;
 import com.menuonline.exceptions.HttpServiceException;
 import com.menuonline.payloads.CustomerMenuResponse;
+import com.menuonline.repository.CustomizationRepository;
 import com.menuonline.repository.ProductRepository;
 import com.menuonline.repository.ProductRepository.ProductMenuProjection;
 import com.menuonline.repository.ScheduleRepository;
@@ -25,13 +27,16 @@ public class MenuService {
 
     private final ProductRepository productRepository;
 
+    private final CustomizationRepository customizationRepository;
+
     public Optional<CustomerMenuResponse> get(UserEntity user) {
         log.info("get - user:{}", user);
         try {
             List<Schedule> schedules = scheduleRepository.findByUserId(user.getId());
-
+            Customization customization = customizationRepository.findActive(user.getId());
             List<ProductMenuProjection> productProjections = productRepository.findMenu(user.getId());
-            return Optional.of(CustomerMenuResponse.from(user, schedules, productProjections));
+
+            return Optional.of(CustomerMenuResponse.from(user, schedules, productProjections, customization));
         } catch (HttpServiceException e) {
             throw e;
         } catch (Exception e) {

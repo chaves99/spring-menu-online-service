@@ -24,6 +24,7 @@ import com.menuonline.payloads.LoginUserRequest;
 import com.menuonline.payloads.LoginUserResponse;
 import com.menuonline.payloads.ResetPasswordRequest;
 import com.menuonline.payloads.UpdatePasswordRequest;
+import com.menuonline.service.CustomizationService;
 import com.menuonline.service.EmailService;
 import com.menuonline.service.MockMenuService;
 import com.menuonline.service.SimpleStorageBucketSerivce;
@@ -44,6 +45,7 @@ public class UserController {
     private final MockMenuService mockMenuService;
     private final EmailService emailService;
     private final SubscriptionService subscriptionService;
+    private final CustomizationService customizationService;
 
     @PostMapping
     @Transactional
@@ -51,6 +53,7 @@ public class UserController {
         UserEntity userEntity = userService.create(request);
         mockMenuService.create(userEntity);
         subscriptionService.createFreeTier(userEntity);
+        customizationService.initDefault(userEntity);
         TokenAccess login = userService.login(userEntity);
         return ResponseEntity.ok(LoginUserResponse.from(login));
     }
