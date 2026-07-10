@@ -29,6 +29,7 @@ import com.menuonline.service.EmailService;
 import com.menuonline.service.MockMenuService;
 import com.menuonline.service.SimpleStorageBucketSerivce;
 import com.menuonline.service.SubscriptionService;
+import com.menuonline.service.UserAccountDeletionService;
 import com.menuonline.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,6 +47,7 @@ public class UserController {
     private final EmailService emailService;
     private final SubscriptionService subscriptionService;
     private final CustomizationService customizationService;
+    private final UserAccountDeletionService deletionService;
 
     @PostMapping
     @Transactional
@@ -112,6 +114,14 @@ public class UserController {
         String key = bucketSerivce.uploadEstablishment(user.getId(), file);
         user = userService.updateImage(user, key);
         return ResponseEntity.ok(LoginUserResponse.from(user, token));
+    }
+
+    @DeleteMapping
+    @Transactional
+    public ResponseEntity<?> deleteAccount(HttpServletRequest request) {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        deletionService.delete(user);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/image")
