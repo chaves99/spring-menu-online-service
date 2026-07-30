@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.menuonline.config.AuthFilter;
 import com.menuonline.entity.TokenAccess;
 import com.menuonline.entity.UserEntity;
+import com.menuonline.facade.DeleteAccountFacade;
 import com.menuonline.payloads.CreateUserRequest;
 import com.menuonline.payloads.LoginUserRequest;
 import com.menuonline.payloads.LoginUserResponse;
@@ -46,6 +47,7 @@ public class UserController {
     private final EmailService emailService;
     private final SubscriptionService subscriptionService;
     private final CustomizationService customizationService;
+    private final DeleteAccountFacade deleteAccountFacade;
 
     @PostMapping
     @Transactional
@@ -55,6 +57,7 @@ public class UserController {
         subscriptionService.createFreeTier(userEntity);
         customizationService.initDefault(userEntity);
         TokenAccess login = userService.login(userEntity);
+        emailService.sendAccountCreation(userEntity);
         return ResponseEntity.ok(LoginUserResponse.from(login));
     }
 
@@ -137,4 +140,15 @@ public class UserController {
         return ResponseEntity.ok(LoginUserResponse.from(user, token));
     }
 
+    @DeleteMapping
+    public ResponseEntity<?> deleteUser(HttpServletRequest request, @RequestBody Map<String, String> body) {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        try {
+            deleteAccountFacade.delete(user, body.get("password"));
+            emailService.sendDeleteAccount(user.getEmail());
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+        return ResponseEntity.ok().build();
+    }
 }

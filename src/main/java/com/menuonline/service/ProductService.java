@@ -48,7 +48,8 @@ public class ProductService {
                     .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
             specs.add(ProductSpecification.isCategory(category));
         } else {
-            specs.add(ProductSpecification.inCategoryList(categoryRepository.findByUserIdOrderBySequence(user.getId())));
+            specs.add(
+                    ProductSpecification.inCategoryList(categoryRepository.findByUserIdOrderBySequence(user.getId())));
         }
         if (filter.name() != null) {
             specs.add(ProductSpecification.byName(filter.name()));
@@ -79,13 +80,15 @@ public class ProductService {
         return saved;
     }
 
-    private void savePrices(CreateProductRequest request, Product product) {
+    private List<Price> savePrices(CreateProductRequest request, Product product) {
+        log.info("savePrices - product:{}", product);
         List<Price> prices = request.prices()
                 .stream()
                 .filter(p -> p.value() != null)
-                .map(p -> new Price(null, p.value(), p.unit(), product))
+                .map(p -> new Price(p.id(), p.value(), p.unit(), product))
                 .toList();
-        priceRepository.saveAll(prices);
+        log.info("savePrices - prices:{}" + prices);
+        return priceRepository.saveAll(prices);
     }
 
     public Optional<Product> getById(Long id, Long userId) {
@@ -93,21 +96,29 @@ public class ProductService {
     }
 
     @Transactional
-    public Product update(Product product, CreateProductRequest request) {
+    public Product update(final Product product, CreateProductRequest request) {
+        log.info("update - product:{}", product);
         Category category = categoryRepository
                 .findById(request.categoryId())
                 .orElseThrow(() -> new HttpServiceException(null, HttpStatus.CONFLICT));
 
-
-        priceRepository.deleteByProductId(product.getId());
-        savePrices(request, product);
+        List<Price> pricesToDelete = product.getPrices().stream()
+            .filter(p -> request.prices().stream().noneMatch(pr -> p.getId().equals(pr.id())))
+            .toList();
 
         product.setName(request.name());
         product.setActive(request.active());
         product.setDescription(request.description());
         product.setCategory(category);
+        List<Price> newPrices = new ArrayList<>();
+        for (var rp : request.prices()) {
+            newPrices.add(new Price(rp.id(), rp.value(), rp.unit(), product));
+        }
+        product.setPrices(newPrices);
 
-        return productRepository.saveAndFlush(product);
+        priceRepository.deleteAll(pricesToDelete);
+
+        return productRepository.save(product);
     }
 
     public void toggleActive(Long id, UserEntity user) {

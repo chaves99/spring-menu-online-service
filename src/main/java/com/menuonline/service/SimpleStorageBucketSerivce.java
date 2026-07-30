@@ -23,6 +23,8 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Delete;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
@@ -86,6 +88,17 @@ public class SimpleStorageBucketSerivce {
         s3Client.deleteObject(req -> {
             req.bucket(bucketConfig.bucketName());
             req.key(keyName);
+        });
+    }
+
+    public void deleteAll(List<Product> products) throws IOException {
+        List<ObjectIdentifier> list = products.stream()
+                .filter(p -> p.getImage() != null)
+                .map(p -> ObjectIdentifier.builder().key(p.getImage()).build())
+                .toList();
+        s3Client.deleteObjects(req -> {
+            req.bucket(bucketConfig.bucketName());
+            req.delete(Delete.builder().objects(list).build());
         });
     }
 

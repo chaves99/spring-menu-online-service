@@ -16,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import com.menuonline.entity.UserEntity;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,7 +77,6 @@ public class EmailService {
 
     private ResponseSpec send(MultiValueMap<String, Object> parts) {
         return restClient.post().body(parts).retrieve();
-
     }
 
     public void sendQrcode(String emailTo, MultipartFile file) throws Exception {
@@ -122,6 +123,37 @@ public class EmailService {
         send(parts);
     }
 
+    public void sendAccountCreation(UserEntity user) {
+        try {
+            MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+            Map<String, Object> params = new HashMap<>();
+            params.put("user_name", user.getEstablishmentName());
+            params.put("company_name", "ItiMenu");
+            params.put("company_name", "ItiMenu");
+
+            parts.add("from", hostFrom);
+            parts.add("to", user.getEmail());
+            parts.add("subject", "Seja bem vindo ao ItiMenu.");
+            parts.add("html", templateComponent.accountCreation(params));
+
+            ResponseSpec res = send(parts);
+            log.info("sendAccountCreation - user:{}, api response:{}", user, res.body(String.class));
+        } catch (Exception e) {
+            log.error("sendAccountCreation - exception:{}", e);
+        }
+    }
+
+    public void sendDeleteAccount(String emailTo) {
+        MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
+        parts.add("from", hostFrom);
+        parts.add("to", emailTo);
+        parts.add("subject", "Exclusão de conta ItiMenu.");
+        parts.add("html", templateComponent.deleteAccount());
+
+        ResponseSpec res = send(parts);
+        log.info("sendDeleteAccount - emailTo:{}, api response:{}", emailTo, res.body(String.class));
+    }
+
     @Component
     @RequiredArgsConstructor
     public static class ThymeleafTemplateComponent {
@@ -140,6 +172,14 @@ public class EmailService {
 
         public String cancelSubscription() {
             return process("cancel_subscription", Map.of());
+        }
+
+        public String deleteAccount() {
+            return process("delete_account", Map.of());
+        }
+
+        public String accountCreation(Map<String, Object> map) {
+            return process("account_creation", map);
         }
 
         private String process(String templateName, Map<String, Object> variables) {

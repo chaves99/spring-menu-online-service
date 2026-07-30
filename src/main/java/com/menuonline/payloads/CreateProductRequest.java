@@ -11,6 +11,7 @@ public record CreateProductRequest(
         boolean active) {
 
     public static record PriceRequest(
+            Long id,
             BigDecimal value,
             String unit) {
     }

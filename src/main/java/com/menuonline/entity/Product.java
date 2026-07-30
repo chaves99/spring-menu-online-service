@@ -50,7 +50,7 @@ public class Product {
 
     private boolean active;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<Price> prices = new ArrayList<>();
 
     @ManyToOne

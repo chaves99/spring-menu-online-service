@@ -51,6 +51,7 @@ public class ErrorHandlerResponse {
         INTERNAL_ERROR,
         NO_RESOURCE_FOUND,
         ENTITY_NOT_FOUND,
+        SUBSCRIPTION_STILL_ACTIVE_TO_DELETE_ACCOUNT,
         PRODUCT_NOT_FOUND;
     }
 }

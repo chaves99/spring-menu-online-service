@@ -1,20 +1,121 @@
 
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
-    <meta charset="UTF-8"></meta>
-    <title>Erro no pagamento</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assinatura Cancelada!</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: #f5f7fb;
+        font-family: Inter, Arial, Helvetica, sans-serif;
+        color: #1f2937;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #ffffff;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+
+    .header {
+        background: linear-gradient(135deg,#6366f1,#8b5cf6);
+        color: white;
+        text-align: center;
+        padding: 48px 30px;
+    }
+
+    .header h1 {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 700;
+    }
+
+    .header p {
+        margin-top: 12px;
+        opacity: .9;
+        font-size: 16px;
+    }
+
+    .content {
+        padding: 40px;
+        line-height: 1.7;
+        font-size: 16px;
+    }
+
+    .quote {
+        margin: 30px 0;
+        padding: 24px;
+        background: #f8fafc;
+        border-left: 4px solid #6366f1;
+        border-radius: 8px;
+        font-size: 18px;
+        font-style: italic;
+        color: #4b5563;
+    }
+
+    .button {
+        display: inline-block;
+        margin-top: 30px;
+        padding: 14px 28px;
+        background: #6366f1;
+        color: white !important;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .footer {
+        padding: 30px;
+        background: #f9fafb;
+        text-align: center;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .heart {
+        font-size: 24px;
+    }
+</style>
 </head>
+
 <body>
-    <p>Ola,</p>
 
-    <p>A sua assinatura na nossa plataforma ItiMenu foi cancelado devido a falha no pagamento.</p>
+<div class="container">
+    <div class="header">
+        <h1>👋 Opss!</h1>
+        <p>Falha no pagamento.</p>
+    </div>
 
-    <p>Você pode conferir mais detalhes na nossa plataforma na tela de assinaturas.</p>
+    <div class="content">
 
-    <p>Atenciosamente,</p>
+        <div style="width: 100%; display: flex; justify-content: center" class="">
+            <img style="width: 80%;" src="https://itimenu.app/logo/full_logo_black.png" alt="">
+        </div>
 
-    <p>ItiMenu Services.</p>
+        <p>Ola <strong>{{user_name}}</strong>,</p>
+
+        <p>A sua assinatura na nossa plataforma ItiMenu foi cancelado devido a falha no pagamento.</p>
+
+        <p>Você pode conferir mais detalhes na nossa plataforma na tela de assinaturas.</p>
+
+        <p>Atenciosamente,</p>
+
+        <p>ItiMenu Services.</p>
+
+        <center>
+            <a target="_blank" class="button" href="https://itimenu.app/admin/subscription">
+                Ver assinaturas
+            </a>
+        </center>
+
+    </div>
+</div>
 
 </body>
 </html>

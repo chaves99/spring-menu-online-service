@@ -1,0 +1,150 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome Aboard!</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: #f5f7fb;
+        font-family: Inter, Arial, Helvetica, sans-serif;
+        color: #1f2937;
+    }
+
+    .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #ffffff;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+
+    .header {
+        background: linear-gradient(135deg,#2563eb,#7c3aed);
+        color: white;
+        text-align: center;
+        padding: 50px 30px;
+    }
+
+    .header h1 {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 700;
+    }
+
+    .header p {
+        margin-top: 12px;
+        font-size: 17px;
+        opacity: .95;
+    }
+
+    .content {
+        padding: 40px;
+        font-size: 16px;
+        line-height: 1.7;
+    }
+
+    .highlight {
+        background: #eff6ff;
+        border-left: 4px solid #2563eb;
+        padding: 22px;
+        margin: 28px 0;
+        border-radius: 8px;
+        font-size: 18px;
+        color: #1e40af;
+    }
+
+    .button {
+        display: inline-block;
+        margin-top: 32px;
+        padding: 15px 30px;
+        background: #2563eb;
+        color: white !important;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+    }
+
+    .footer {
+        padding: 30px;
+        background: #f9fafb;
+        text-align: center;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .emoji {
+        font-size: 26px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>🎉 Bem vindo, {{user_name}}!</h1>
+        <p>Sua jornada começa hoje..</p>
+    </div>
+
+    <div class="content">
+
+        <div style="width: 100%; display: flex; justify-content: center" class="">
+            <img style="width: 80%;" src="https://itimenu.app/logo/full_logo_black.png" alt="">
+        </div>
+
+        <p>Ola <strong>${user_name}</strong>,</p>
+
+        <p>
+            Bem vindo ao <strong>${company_name}</strong>! Estamos empolgados por você ter se juntado a nós.
+            Sua conta está pronta, e tudo o que você precisa está a apenas alguns cliques de distância.
+        </p>
+
+        <div class="highlight">
+            🚀 Todo grande projeto começa com um único passo. Hoje, você acabou de dar o seu.
+        </div>
+
+        <p>
+            Seja para construir, criar, organizar, automatizar ou expandir, estamos aqui para ajudar você em
+            cada etapa do caminho.
+        </p>
+
+        <p>
+            Criamos a ${company_name} para ser rápida, intuitiva e poderosa para que você possa gastar
+            menos tempo tentando entender como as coisas funcionam e mais tempo fazendo o que realmente importa.
+        </p>
+
+        <!-- <center> -->
+        <!--     <a href="{{dashboard_url}}" class="button"> -->
+        <!--         Abrir meu painel principal -->
+        <!--     </a> -->
+        <!-- </center> -->
+
+        <p style="margin-top:40px;">
+            Se você precisar de ajuda, tiver algum feedback ou simplesmente quiser compartilhar uma ideia,
+            estamos sempre ouvindo.
+        </p>
+
+        <p>
+            Um brinde à construção de algo incrível juntos.
+        </p>
+
+    </div>
+
+    <div class="footer">
+        <div class="emoji">💙</div>
+        <p>
+            Bem vindo à <strong>${company_name}</strong>.<br>
+            Ficamos felizes que você esteja aqui.
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>
