@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.menuonline.entity.TokenAccess;
 import com.menuonline.entity.UserEntity;
@@ -15,6 +16,7 @@ import com.menuonline.payloads.CreateUserRequest;
 import com.menuonline.payloads.LoginUserRequest;
 import com.menuonline.payloads.ResetPasswordRequest;
 import com.menuonline.payloads.UpdatePasswordRequest;
+import com.menuonline.payloads.UpdateUserRequest;
 import com.menuonline.repository.TokenAccessRepository;
 import com.menuonline.repository.UserRepository;
 import com.menuonline.utils.CryptoUtil;
@@ -159,6 +161,19 @@ public class UserService {
 
     public Optional<UserEntity> findByUrl(String url) {
         return userRepository.findByEstablishmentUrl(url);
+    }
+
+    public UserEntity update(UserEntity user, UpdateUserRequest req) {
+        boolean shouldUpdate = false;
+        if (StringUtils.hasText(req.establishmentName())) {
+            user.setEstablishmentName(req.establishmentName());
+            shouldUpdate = true;
+        }
+        if (StringUtils.hasText(req.description())) {
+            user.setEstablishmentDescription(req.description());
+            shouldUpdate = true;
+        }
+        return shouldUpdate ? userRepository.save(user) : user;
     }
 
     public UserEntity updateDescription(UserEntity user, String description) {

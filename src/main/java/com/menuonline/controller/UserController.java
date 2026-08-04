@@ -25,6 +25,7 @@ import com.menuonline.payloads.LoginUserRequest;
 import com.menuonline.payloads.LoginUserResponse;
 import com.menuonline.payloads.ResetPasswordRequest;
 import com.menuonline.payloads.UpdatePasswordRequest;
+import com.menuonline.payloads.UpdateUserRequest;
 import com.menuonline.service.CustomizationService;
 import com.menuonline.service.EmailService;
 import com.menuonline.service.MockMenuService;
@@ -59,6 +60,14 @@ public class UserController {
         TokenAccess login = userService.login(userEntity);
         emailService.sendAccountCreation(userEntity);
         return ResponseEntity.ok(LoginUserResponse.from(login));
+    }
+
+    @PutMapping
+    public ResponseEntity<LoginUserResponse> update(HttpServletRequest request, @RequestBody UpdateUserRequest req) {
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
+        user = userService.update(user, req);
+        return ResponseEntity.ok(LoginUserResponse.from(user, token));
     }
 
     @PostMapping("/login")
