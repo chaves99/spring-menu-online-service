@@ -1,16 +1,14 @@
 package com.menuonline.service;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
+import com.menuonline.controller.CustomizationController.CustomizationPayload;
 import com.menuonline.entity.Customization;
-import com.menuonline.entity.UserEntity;
 import com.menuonline.entity.Customization.Theme;
-import com.menuonline.exceptions.HttpServiceException;
+import com.menuonline.entity.UserEntity;
 import com.menuonline.repository.CustomizationRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -24,17 +22,12 @@ public class CustomizationService {
     private final CustomizationRepository customizationRepository;
 
     @Transactional
-    public void setActive(UserEntity user, @PathVariable Long id) {
-        Optional<Customization> opt = customizationRepository.findById(id);
-        if (opt.isEmpty() || !opt.get().getUser().equals(user)) {
-            throw HttpServiceException.notFound();
-        }
-        List<Customization> byUserId = customizationRepository
-                .findByUserId(user.getId());
-        byUserId
-                .forEach(c -> c.setActive(Boolean.FALSE));
-
-        opt.get().setActive(Boolean.TRUE);
+    public Customization newCustomization(UserEntity user, CustomizationPayload body) {
+        Customization active = customizationRepository.findActive(user.getId());
+        active.setActive(false);
+        Customization entity = new Customization(null, body.name(), body.mainColor(), body.secondaryColor(),
+                body.font(), Customization.Theme.from(body.theme()), user, true, false);
+        return customizationRepository.save(entity);
     }
 
     public void initDefault(UserEntity user) {

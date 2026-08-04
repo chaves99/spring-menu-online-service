@@ -52,18 +52,7 @@ public class CustomizationController {
     @PostMapping
     public ResponseEntity<?> create(HttpServletRequest request, @RequestBody CustomizationPayload body) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
-        Customization entity = new Customization(null, body.name(), body.mainColor(), body.secondaryColor(),
-                body.font(), Customization.Theme.from(body.theme()), user, false, false);
-        Customization save = customizationRepository.save(entity);
-
-        return ResponseEntity.ok(CustomizationPayload.from(save));
-    }
-
-    @PutMapping("/{id}/active")
-    public ResponseEntity<?> setActive(HttpServletRequest request, @PathVariable Long id) {
-        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
-        customizationService.setActive(user, id);
-        return findAll(user);
+        return ResponseEntity.ok(CustomizationPayload.from(customizationService.newCustomization(user, body)));
     }
 
     @DeleteMapping("/{id}")

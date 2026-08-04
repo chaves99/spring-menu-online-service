@@ -13,8 +13,7 @@ public interface CustomizationRepository extends JpaRepository<Customization, Lo
 
     List<Customization> findByUserId(Long userId);
 
-    // It should always return something
-    // TODO for it work it needs to save the default themes
+    // It should ALWAYS return something
     @Query(nativeQuery = true, value = "select * from customization where active = true and user_id = :userId")
     Customization findActive(Long userId);
 
