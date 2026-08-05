@@ -25,9 +25,23 @@ public class CustomizationService {
     public Customization newCustomization(UserEntity user, CustomizationPayload body) {
         Customization active = customizationRepository.findActive(user.getId());
         active.setActive(false);
-        Customization entity = new Customization(null, body.name(), body.mainColor(), body.secondaryColor(),
-                body.font(), Customization.Theme.from(body.theme()), user, true, false);
-        return customizationRepository.save(entity);
+        customizationRepository.save(active);
+
+        return customizationRepository.findById(body.id())
+                .map(theme -> {
+                    theme.setActive(true);
+                    theme.setMainColor(body.mainColor());
+                    theme.setFont(body.font());
+                    theme.setSecondaryColor(body.secondaryColor());
+                    theme.setThemeType(Customization.Theme.valueOf(body.theme()));
+                    return customizationRepository.save(theme);
+                })
+                .orElseGet(() -> {
+                    Customization entity = new Customization(null, body.name(), body.mainColor(),
+                            body.secondaryColor(),
+                            body.font(), Customization.Theme.from(body.theme()), user, true, false);
+                    return customizationRepository.save(entity);
+                });
     }
 
     public void initDefault(UserEntity user) {

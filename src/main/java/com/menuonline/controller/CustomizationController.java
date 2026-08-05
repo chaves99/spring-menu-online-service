@@ -2,6 +2,7 @@ package com.menuonline.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.menuonline.config.AuthFilter;
 import com.menuonline.entity.Customization;
 import com.menuonline.entity.UserEntity;
+import com.menuonline.exceptions.HttpServiceException;
 import com.menuonline.repository.CustomizationRepository;
 import com.menuonline.service.CustomizationService;
 
@@ -60,6 +62,9 @@ public class CustomizationController {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         return customizationRepository.findById(id)
                 .map(theme -> {
+                    if (theme.getActive()) {
+                        throw new HttpServiceException("Cannot delete active customization", null, HttpStatus.CONFLICT);
+                    }
                     boolean equals = theme.getUser().equals(user);
                     if (equals) {
                         customizationRepository.delete(theme);
@@ -70,10 +75,12 @@ public class CustomizationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    public static record CustomizationPayload(Long id, String name, String mainColor, String secondaryColor, String font,
+    public static record CustomizationPayload(Long id, String name, String mainColor, String secondaryColor,
+            String font,
             String theme, boolean builtin, boolean active) {
         public static CustomizationPayload from(Customization c) {
-            return new CustomizationPayload(c.getId(), c.getName(), c.getMainColor(), c.getSecondaryColor(), c.getFont(),
+            return new CustomizationPayload(c.getId(), c.getName(), c.getMainColor(), c.getSecondaryColor(),
+                    c.getFont(),
                     c.getThemeType().name(), c.getBuiltin(), c.getActive());
         }
     }
