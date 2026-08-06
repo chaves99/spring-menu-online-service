@@ -169,7 +169,7 @@ public class UserService {
             user.setEstablishmentName(req.establishmentName());
             shouldUpdate = true;
         }
-        if (StringUtils.hasText(req.description())) {
+        if (req.description() != null) {
             user.setEstablishmentDescription(req.description());
             shouldUpdate = true;
         }

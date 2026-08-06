@@ -139,16 +139,6 @@ public class UserController {
         }
     }
 
-    @PutMapping("/description")
-    public ResponseEntity<LoginUserResponse> updateDescription(HttpServletRequest request,
-            @RequestBody Map<String, String> body) {
-        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
-        String description = body.get("description");
-        String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
-        user = userService.updateDescription(user, description);
-        return ResponseEntity.ok(LoginUserResponse.from(user, token));
-    }
-
     @DeleteMapping
     public ResponseEntity<?> deleteUser(HttpServletRequest request, @RequestBody Map<String, String> body) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
