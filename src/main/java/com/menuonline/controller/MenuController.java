@@ -49,6 +49,7 @@ public class MenuController {
                     subscriptionService.verifyUserFreeTier(user);
                     var active = user.getSubscriptions().stream()
                             .anyMatch(s -> s.getStatus().equals(Subscription.Status.ACTIVE));
+                    log.info("get - user without subscription active:{}", user);
                     if (!active) {
                         return Optional.empty();
                     }
