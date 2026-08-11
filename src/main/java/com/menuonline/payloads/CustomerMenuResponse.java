@@ -20,8 +20,8 @@ public record CustomerMenuResponse(
             Customization customization) {
         EstablishmentInfoResponse info = new EstablishmentInfoResponse(user.getId(),
                 user.getEstablishmentName(), user.getEstablishmentDescription(), user.getInstagram(),
-                user.getFacebook(), user.getWebsite(), user.getWhatsapp(), user.getPhone(), user.getImage(),
-                user.getAddressLine(), user.getCode(), user.getCity());
+                user.getFacebook(), user.getWebsite(), user.getWhatsapp(), user.getWifiName(), user.getWifiPassword(),
+                user.getPhone(), user.getImage(), user.getAddressLine(), user.getCode(), user.getCity());
 
         List<ScheduleResponse> scheduleResponses = ScheduleResponse.from(schedules);
 
@@ -82,9 +82,6 @@ public record CustomerMenuResponse(
     public static record CategoryResponse(Long id, String name, List<ProductResponse> products) {
     }
 
-    // public static record CustomizationResponse(String mainColor, String
-    // secondaryColor, String font, String themeType){}
-
     public static record EstablishmentInfoResponse(
             Long id,
             String establishmentName,
@@ -93,6 +90,8 @@ public record CustomerMenuResponse(
             String facebook,
             String website,
             String whatsapp,
+            String wifiName,
+            String wifiPassword,
             String phone,
             String image,
             String addressLine,

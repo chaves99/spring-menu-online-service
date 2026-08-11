@@ -191,4 +191,10 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public UserEntity updateWifi(UserEntity user, String name, String password) {
+        user.setWifiName(name);
+        user.setWifiPassword(password);
+        return userRepository.save(user);
+    }
+
 }

@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS users(
     image VARCHAR,
     code VARCHAR(20),
     city VARCHAR(100),
+    wifi_name VARCHAR(120),
+    wifi_password VARCHAR(120),
     address_line VARCHAR(250),
     reset_password_token VARCHAR(20) UNIQUE,
     reset_password_token_creation TIMESTAMP,

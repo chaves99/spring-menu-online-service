@@ -105,6 +105,18 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+    public static record WifiBody(String name, String password) {
+    }
+
+    @PutMapping("/wifi")
+    public ResponseEntity<LoginUserResponse> putWifi(HttpServletRequest request,
+            @RequestBody WifiBody body) {
+        String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);
+        UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
+        return ResponseEntity
+                .ok(LoginUserResponse.from(userService.updateWifi(user, body.name(), body.password()), token));
+    }
+
     @GetMapping
     public ResponseEntity<LoginUserResponse> get(HttpServletRequest request) {
         String token = (String) request.getAttribute(AuthFilter.TOKEN_ATTR_KEY);

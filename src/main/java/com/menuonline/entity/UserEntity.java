@@ -67,6 +67,10 @@ public class UserEntity {
 
     private String code;
 
+    private String wifiName;
+
+    private String wifiPassword;
+
     private String city;
 
     private String addressLine;
