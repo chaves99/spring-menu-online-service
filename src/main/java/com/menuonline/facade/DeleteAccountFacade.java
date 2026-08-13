@@ -20,7 +20,6 @@ import com.menuonline.repository.ProductRepository;
 import com.menuonline.repository.SubscriptionRepository;
 import com.menuonline.repository.UserRepository;
 import com.menuonline.service.SimpleStorageBucketSerivce;
-import com.menuonline.service.SubscriptionService;
 import com.menuonline.utils.CryptoUtil;
 
 import lombok.RequiredArgsConstructor;

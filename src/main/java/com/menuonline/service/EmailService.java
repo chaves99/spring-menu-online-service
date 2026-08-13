@@ -68,11 +68,12 @@ public class EmailService {
 
     public void sendUserMessage(String userEmail, String subject, String message) {
         MultiValueMap<String, Object> parts = new LinkedMultiValueMap<>();
-        parts.add("from", hostFrom);
+        parts.add("from", userEmail);
         parts.add("to", companyEmail);
-        parts.add("subject", "from: " + userEmail);
+        parts.add("subject", "from: " + userEmail + " - " + subject);
         parts.add("text", message);
-        send(parts);
+        ResponseSpec res = send(parts);
+        log.info("sendUserMessage - success:{}", res.toEntity(String.class).getStatusCode().is2xxSuccessful());
     }
 
     private ResponseSpec send(MultiValueMap<String, Object> parts) {
