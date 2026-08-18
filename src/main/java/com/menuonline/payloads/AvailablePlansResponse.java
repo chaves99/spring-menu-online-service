@@ -1,16 +1,13 @@
 package com.menuonline.payloads;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import com.menuonline.exceptions.HttpServiceException;
 
-public record AvailablePlansResponse(String priceId, BigDecimal value, String name, String description,
-        PlanRecurringInterval recurringInterval, Double valueDiscount) {
+public record AvailablePlansResponse(String productId, String name, List<String> description, List<AvailablePriceResponse> priceOptions) {
 
-    public AvailablePlansResponse(String priceId, BigDecimal value, String name, String description, String recurring,
-            Double valueDiscount) {
-        this(priceId, value, name, description == null ? "" : description, PlanRecurringInterval.get(recurring),
-                valueDiscount);
+    public static record AvailablePriceResponse(String priceId, BigDecimal value, PlanRecurringInterval recurring, BigDecimal savingValue) {
     }
 
     public enum PlanRecurringInterval {

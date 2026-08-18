@@ -1,6 +1,7 @@
 package com.menuonline.service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -12,13 +13,17 @@ import org.springframework.stereotype.Service;
 import com.menuonline.exceptions.HttpServiceException;
 import com.menuonline.payloads.AvailablePlansResponse;
 import com.menuonline.payloads.SubscriptionDetailResponse;
+import com.menuonline.payloads.AvailablePlansResponse.AvailablePriceResponse;
+import com.menuonline.payloads.AvailablePlansResponse.PlanRecurringInterval;
 import com.stripe.StripeClient;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.Price;
+import com.stripe.model.Product;
 import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.CustomerListParams;
+import com.stripe.param.PriceListParams;
 import com.stripe.param.PriceRetrieveParams;
 import com.stripe.param.ProductListParams;
 import com.stripe.param.SubscriptionCancelParams;
@@ -177,7 +182,7 @@ public class StripeService {
     }
 
     public Optional<String> generateNewPlanUrl(String email, String priceId) {
-        log.info("generateNewPlanUrl - email:{}");
+        log.info("generateNewPlanUrl - email:{}", email);
         try {
             SessionCreateParams sessionCreateParams = SessionCreateParams.builder()
                     .setSuccessUrl("https://itimenu.app/post-sale")
@@ -205,7 +210,7 @@ public class StripeService {
         }
     }
 
-    public String getDescription(String priceId) throws StripeException {
+    private String getDescription(String priceId) throws StripeException {
         Price price = client.v1().prices().retrieve(priceId,
                 PriceRetrieveParams.builder().addExpand("product").build());
         return price.getProductObject().getDescription();
@@ -223,34 +228,79 @@ public class StripeService {
         return Optional.empty();
     }
 
+
     public List<AvailablePlansResponse> findPlans() {
         try {
-            ProductListParams params = ProductListParams.builder()
-                    .setActive(true)
-                    .addExpand("data.default_price").build();
-            return client.v1().products().list(params).getData().stream().map(product -> {
-                product.getDescription();
-                product.getName();
-                String description = product.getMetadata().get("description");
-                Double valueDiscount = null;
-                try {
-                    valueDiscount = Double.valueOf(product.getMetadata().get("value_discount"));
-                } catch (Exception ignored) {
-                }
-                Price price = product.getDefaultPriceObject();
-                String interval = price.getRecurring().getInterval();
-                BigDecimal finalValue = BigDecimal
-                        .valueOf(price.getUnitAmount())
-                        .divide(BigDecimal.valueOf(100));
+            List<AvailablePlansResponse> plansResponse = new ArrayList<>();
+            List<Price> prices = client.v1().prices()
+                    .list(PriceListParams.builder().setActive(true).build()).getData();
+            List<Product> data = client.v1().products()
+                    .list(ProductListParams.builder().setActive(true).build()).getData();
 
-                return new AvailablePlansResponse(price.getId(), finalValue, product.getName(),
-                        description, interval, valueDiscount);
+            for (Product product : data) {
+                String metadataDescription = product.getMetadata().get("description");
+                List<String> description = metadataDescription != null
+                        ? List.of(metadataDescription.split("<break>"))
+                        : List.of();
+                List<AvailablePriceResponse> pricesResponse = prices.stream()
+                        .filter(price -> price.getProduct().equals(product.getId()))
+                        .map(price -> {
+                            String priceSavingValue = price.getMetadata().get("saving");
+                            BigDecimal savingValue = null;
+                            if (priceSavingValue != null) {
+                                savingValue = BigDecimal
+                                        .valueOf(Integer.valueOf(priceSavingValue))
+                                        .divide(BigDecimal.valueOf(100));
+                            }
+                            BigDecimal finalValue = BigDecimal
+                                    .valueOf(price.getUnitAmount())
+                                    .divide(BigDecimal.valueOf(100));
+                            PlanRecurringInterval planRecurringInterval = PlanRecurringInterval
+                                    .get(price.getRecurring().getInterval());
+                            return new AvailablePriceResponse(price.getId(), finalValue,
+                                    planRecurringInterval, savingValue);
+                        }).toList();
+                plansResponse.add(new AvailablePlansResponse(
+                        product.getId(), product.getName(), description, pricesResponse));
 
-            }).toList();
-        } catch (StripeException e) {
-            log.warn("findDetails - exception: {}", e.getMessage());
+            }
+
+            return plansResponse;
+        } catch (Exception e) {
+            log.error("findPlans ", e);
         }
         return List.of();
     }
+
+    // public List<AvailablePlansResponse> findPlans() {
+    //     try {
+    //         ProductListParams params = ProductListParams.builder()
+    //                 .setActive(true)
+    //                 .addExpand("data.default_price").build();
+    //         return client.v1().products().list(params).getData().stream().map(product -> {
+    //             System.out.println(product);
+    //             product.getDescription();
+    //             product.getName();
+    //             String description = product.getMetadata().get("description");
+    //             Double valueDiscount = null;
+    //             try {
+    //                 valueDiscount = Double.valueOf(product.getMetadata().get("value_discount"));
+    //             } catch (Exception ignored) {
+    //             }
+    //             Price price = product.getDefaultPriceObject();
+    //             String interval = price.getRecurring().getInterval();
+    //             BigDecimal finalValue = BigDecimal
+    //                     .valueOf(price.getUnitAmount())
+    //                     .divide(BigDecimal.valueOf(100));
+    //
+    //             return new AvailablePlansResponse(price.getId(), finalValue, product.getName(),
+    //                     description, interval, valueDiscount);
+    //
+    //         }).toList();
+    //     } catch (StripeException e) {
+    //         log.warn("findDetails - exception: {}", e.getMessage());
+    //     }
+    //     return List.of();
+    // }
 
 }
