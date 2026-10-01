@@ -34,7 +34,7 @@ public class AwsEmailService {
 
     public AwsEmailService(JavaMailSender javaMailSender,
             ThymeleafTemplateComponent templateComponent,
-            @Value("${mailgun.hostFrom}") String hostFrom,
+            @Value("${hostFrom}") String hostFrom,
             @Value("${company-email}") String companyEmail) {
         this.javaMailSender = javaMailSender;
         this.templateComponent = templateComponent;
