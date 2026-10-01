@@ -96,10 +96,12 @@ public class SimpleStorageBucketSerivce {
                 .filter(p -> p.getImage() != null)
                 .map(p -> ObjectIdentifier.builder().key(p.getImage()).build())
                 .toList();
-        s3Client.deleteObjects(req -> {
-            req.bucket(bucketConfig.bucketName());
-            req.delete(Delete.builder().objects(list).build());
-        });
+        if (!list.isEmpty()) {
+            s3Client.deleteObjects(req -> {
+                req.bucket(bucketConfig.bucketName());
+                req.delete(Delete.builder().objects(list).build());
+            });
+        }
     }
 
     private String buildProductKey(Long userId, Long productId) {

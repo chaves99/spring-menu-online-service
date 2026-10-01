@@ -121,7 +121,7 @@ public class UserService {
 
     public String generateRecoveryToken(String email) {
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new HttpServiceException(null, HttpStatus.UNAUTHORIZED));
+                .orElseThrow(() -> new HttpServiceException(null, HttpStatus.BAD_REQUEST));
 
         if (!UserEntity.canGenerateRecoveryToken(user)) {
             throw new HttpServiceException(ErrorMessages.UNAUTHORIZED_TO_GENERATE_RECOVERY_CODE,
@@ -132,7 +132,7 @@ public class UserService {
         user.setResetPasswordToken(token);
         user.setResetPasswordTokenCreation(LocalDateTime.now());
         userRepository.save(user);
-        log.info("generateToken - email:{}", token);
+        log.info("generateToken - email:{}", email);
 
         return token;
     }

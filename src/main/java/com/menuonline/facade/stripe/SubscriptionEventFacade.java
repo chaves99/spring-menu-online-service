@@ -8,12 +8,13 @@ import com.menuonline.entity.Subscription.EndReason;
 import com.menuonline.entity.UserEntity;
 import com.menuonline.payloads.stripe.StripeSubscriptionStatus;
 import com.menuonline.payloads.stripe.StripeWebhookSubscriptionEvent;
-import com.menuonline.service.EmailService;
+import com.menuonline.service.AwsEmailService;
 import com.menuonline.service.StripeService;
 import com.menuonline.service.SubscriptionService;
 import com.menuonline.service.UserService;
 import com.stripe.model.Subscription;
 
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,7 +25,7 @@ public class SubscriptionEventFacade {
 
     private final SubscriptionService subscriptionService;
     private final StripeService stripeService;
-    private final EmailService emailService;
+    private final AwsEmailService emailService;
     private final UserService userService;
 
     public void newSubscription(StripeWebhookSubscriptionEvent event) {
@@ -37,9 +38,11 @@ public class SubscriptionEventFacade {
         }, () -> log.warn("newSubscription - email not found for event:{}", event));
     }
 
-    public void cancelSubscription(StripeWebhookSubscriptionEvent event) {
+    public void cancelSubscription(StripeWebhookSubscriptionEvent event) throws MessagingException {
         log.info("cancelSubscription - event:{}", event);
-        subscriptionService.canceled(event).ifPresent(subs -> {
+        Optional<com.menuonline.entity.Subscription> optCanceled = subscriptionService.canceled(event);
+        if (optCanceled.isPresent()) {
+            com.menuonline.entity.Subscription subs = optCanceled.get();
             UserEntity user = subs.getUser();
             log.info("cancelSubscription - subscription:{} user:{}", subs, user);
             if (subs.getEndReason().equals(EndReason.UNPAID)) {
@@ -47,7 +50,7 @@ public class SubscriptionEventFacade {
             } else {
                 emailService.subscriptionCancel(user.getEmail());
             }
-        });
+        }
     }
 
     public void syncSubscription(StripeWebhookSubscriptionEvent event) {

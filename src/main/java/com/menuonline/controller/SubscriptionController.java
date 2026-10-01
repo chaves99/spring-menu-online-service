@@ -16,7 +16,7 @@ import com.menuonline.entity.UserEntity;
 import com.menuonline.exceptions.HttpServiceException;
 import com.menuonline.payloads.AvailablePlansResponse;
 import com.menuonline.payloads.SubscriptionResponse;
-import com.menuonline.service.EmailService;
+import com.menuonline.service.AwsEmailService;
 import com.menuonline.service.StripeService;
 import com.menuonline.service.SubscriptionService;
 
@@ -32,7 +32,7 @@ public class SubscriptionController {
 
     private final StripeService stripeService;
     private final SubscriptionService subscriptionService;
-    private final EmailService emailService;
+    private final AwsEmailService emailService;
 
     @GetMapping
     public ResponseEntity<SubscriptionResponse> get(HttpServletRequest request) {

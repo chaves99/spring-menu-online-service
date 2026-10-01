@@ -26,13 +26,14 @@ import com.menuonline.payloads.LoginUserResponse;
 import com.menuonline.payloads.ResetPasswordRequest;
 import com.menuonline.payloads.UpdatePasswordRequest;
 import com.menuonline.payloads.UpdateUserRequest;
+import com.menuonline.service.AwsEmailService;
 import com.menuonline.service.CustomizationService;
-import com.menuonline.service.EmailService;
 import com.menuonline.service.MockMenuService;
 import com.menuonline.service.SimpleStorageBucketSerivce;
 import com.menuonline.service.SubscriptionService;
 import com.menuonline.service.UserService;
 
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +46,7 @@ public class UserController {
     private final UserService userService;
     private final SimpleStorageBucketSerivce bucketSerivce;
     private final MockMenuService mockMenuService;
-    private final EmailService emailService;
+    private final AwsEmailService awsEmailService;
     private final SubscriptionService subscriptionService;
     private final CustomizationService customizationService;
     private final DeleteAccountFacade deleteAccountFacade;
@@ -58,7 +59,11 @@ public class UserController {
         subscriptionService.createFreeTier(userEntity);
         customizationService.initDefault(userEntity);
         TokenAccess login = userService.login(userEntity);
-        emailService.sendAccountCreation(userEntity);
+        try {
+            awsEmailService.sendAccountCreation(userEntity);
+        } catch (MessagingException e) {
+            return ResponseEntity.internalServerError().build();
+        }
         return ResponseEntity.ok(LoginUserResponse.from(login));
     }
 
@@ -87,7 +92,11 @@ public class UserController {
     @Transactional
     public ResponseEntity<?> generateToken(@PathVariable String email) {
         String token = userService.generateRecoveryToken(email);
-        emailService.sendToken(email, token);
+        try {
+            awsEmailService.sendToken(email, token);
+        } catch (MessagingException e) {
+            return ResponseEntity.internalServerError().build();
+        }
         return ResponseEntity.ok().build();
     }
 
@@ -156,8 +165,8 @@ public class UserController {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         try {
             deleteAccountFacade.delete(user, body.get("password"));
-            emailService.sendDeleteAccount(user.getEmail());
-        } catch (IOException e) {
+            awsEmailService.sendDeleteAccount(user.getEmail());
+        } catch (IOException | MessagingException e) {
             return ResponseEntity.internalServerError().build();
         }
         return ResponseEntity.ok().build();
