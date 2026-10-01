@@ -12,6 +12,7 @@ ARG STRIPE_SECRET_KEY
 ARG AWS_SECRET_KEY
 ARG AWS_ACCESS_KEY
 ARG AWS_REGION
+ARG HOST_FROM
 
 WORKDIR /app
 
@@ -32,6 +33,7 @@ ENV STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
 ENV AWS_SECRET_KEY=$AWS_SECRET_KEY
 ENV AWS_ACCESS_KEY=$AWS_ACCESS_KEY
 ENV AWS_REGION=$AWS_REGION
+ENV HOST_FROM=$HOST_FROM
 
 RUN ./mvnw package -DskipTests && \
      mv target/$(./mvnw help:evaluate -Dexpression=project.artifactId -q -DforceStdout)-$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout).jar target/app.jar
