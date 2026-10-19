@@ -58,6 +58,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     List<Product> findByCategoryIdIn(List<Long> categoriesIds);
 
+    List<Product> findProductByTags_Id(Long id);
+
     public static interface ProductProjection {
         public long getId();
 
@@ -82,25 +84,29 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
 
     @Query(nativeQuery = true, value = """
-            select
+            SELECT
                 p.id,
-                p.name as productName,
+                p.name AS productName,
                 p.image,
-                pr.id as priceId,
-                pr.unit,
-                pr.value,
-                p.description,
                 p.active,
                 p.category_id,
-                c.name as categoryName
-            from products p
-            join prices pr on (p.id = pr.product_id)
-            join categories c on (c.id = p.category_id)
-            join users u on (u.id = c.user_id)
-            where u.id = :userId
-            and c.enabled is true
-            and p.active is true
-            order by c.sequence, p.name, pr.value
+                p.description,
+                pr.id AS priceId,
+                pr.unit,
+                pr.value,
+                c.name AS categoryName,
+                t.id AS tagId,
+                t.name AS tagName
+            FROM products p
+            JOIN prices pr ON (p.id = pr.product_id)
+            JOIN categories c ON (c.id = p.category_id)
+            JOIN users u ON (u.id = c.user_id)
+            LEFT JOIN product_tags pt ON (pt.product_id = p.id)
+            LEFT JOIN tags t ON (t.id = pt.tag_id)
+            WHERE u.id = :userId
+            AND c.enabled IS true
+            AND p.active IS true
+            ORDER BY c.sequence, p.name, pr.value;
             """)
     List<ProductMenuProjection> findMenu(long userId);
 
@@ -115,6 +121,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
         public boolean isActive();
         public long getCategoryId();
         public String getCategoryName();
+        public Long getTagId();
+        public String getTagName();
     }
 
 }

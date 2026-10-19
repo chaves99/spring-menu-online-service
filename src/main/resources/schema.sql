@@ -92,3 +92,16 @@ CREATE TABLE IF NOT EXISTS customization(
     user_id INTEGER NOT NULL REFERENCES users(id)
 );
 
+CREATE TABLE IF NOT EXISTS tags(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    UNIQUE (name, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS product_tags(
+    product_id INTEGER NOT NULL REFERENCES products(id),
+    tag_id INTEGER NOT NULL REFERENCES tags(id),
+    PRIMARY KEY(product_id, tag_id)
+);
+

@@ -17,21 +17,8 @@ public record ProductResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         long categoryId,
-        String categoryName) {
-
-    public static ProductResponse from(ProductProjection product) {
-        return new ProductResponse(
-                product.getId(),
-                product.getProductName(),
-                product.getDescription(),
-                product.isActive(),
-                product.getImage(),
-                List.of(),
-                product.getCreatedAt(),
-                product.getUpdatedAt(),
-                product.getCategoryId(),
-                product.getCategoryName());
-    }
+        String categoryName,
+        List<TagsResponse> tags) {
 
     public static ProductResponse from(Product product) {
         List<PriceResponse> prices = product.getPrices().stream()
@@ -47,12 +34,16 @@ public record ProductResponse(
                 product.getCreatedAt(),
                 product.getUpdatedAt(),
                 product.getCategory().getId(),
-                product.getCategory().getName());
+                product.getCategory().getName(),
+                product.getTags().stream().map(t -> new TagsResponse(t.getId(), t.getName())).toList());
     }
 
     public static record PriceResponse(
             Long id,
             BigDecimal value,
             String unit) {
+    }
+
+    public static record TagsResponse(Long id, String name){
     }
 }

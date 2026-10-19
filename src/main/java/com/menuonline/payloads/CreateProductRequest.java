@@ -7,6 +7,7 @@ public record CreateProductRequest(
         String name,
         String description,
         List<PriceRequest> prices,
+        List<Long> tagsIds,
         long categoryId,
         boolean active) {
 

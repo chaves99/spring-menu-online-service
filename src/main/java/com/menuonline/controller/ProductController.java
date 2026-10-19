@@ -101,13 +101,16 @@ public class ProductController {
     }
 
     @PatchMapping("/{id}")
+    @Transactional
     public ResponseEntity<ProductResponse> update(HttpServletRequest request,
             @PathVariable Long id, @RequestBody CreateProductRequest body) {
         UserEntity user = (UserEntity) request.getAttribute(AuthFilter.USER_ATTR_KEY);
         Product product = service
                 .findByUserAndId(user.getId(), id)
                 .orElseThrow(() -> new HttpServiceException(ErrorMessages.PRODUCT_NOT_FOUND, HttpStatus.NOT_FOUND));
-        return ResponseEntity.ok(ProductResponse.from(service.update(product, body)));
+        service.updateProduct(product, body);
+        ProductResponse response = ProductResponse.from(product);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
